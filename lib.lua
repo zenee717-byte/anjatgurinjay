@@ -1,4 +1,4 @@
-```lua
+
 --// Gnnrs UI Library FULL (Checkbox + Keybind Version)
 --// Fixed, Clean, No Errors
 
@@ -248,4 +248,4 @@ Window:AddToggle({
 
     end
 })
-```
+

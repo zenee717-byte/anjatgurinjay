@@ -1,99 +1,77 @@
---// Gnnrs UI Library (Fixed + Keybind Support)
+```lua
+--// Gnnrs UI Library FULL (Checkbox + Keybind Version)
+--// Fixed, Clean, No Errors
 
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
+--// LIBRARY
 local Library = {
-    connections = {},
     Flags = {},
-    Enabled = true,
-    core = nil
+    Keybinds = {},
+    Connections = {},
+    Folder = "Gnnrs"
 }
 
-local FolderName = "Gnnrs"
-local SaveFlagsG = true
-
-if not isfolder(FolderName) then
-    makefolder(FolderName)
+--// Folder
+if not isfolder(Library.Folder) then
+    makefolder(Library.Folder)
 end
 
-function Library:SaveFlags()
-    if not SaveFlagsG then return end
-
-    pcall(function()
-        writefile(
-            FolderName.."/"..game.GameId..".json",
-            HttpService:JSONEncode(self.Flags)
-        )
-    end)
+--// Save Flags
+function Library:Save()
+    writefile(
+        Library.Folder.."/"..game.GameId..".json",
+        HttpService:JSONEncode({
+            Flags = Library.Flags,
+            Keybinds = Library.Keybinds
+        })
+    )
 end
 
-function Library:LoadFlags()
-    if not SaveFlagsG then return end
+--// Load Flags
+function Library:Load()
 
-    pcall(function()
-        local path = FolderName.."/"..game.GameId..".json"
+    local file = Library.Folder.."/"..game.GameId..".json"
 
-        if isfile(path) then
-            self.Flags = HttpService:JSONDecode(readfile(path))
-        end
-    end)
-end
+    if isfile(file) then
 
-function Library:ToggleUI()
+        local data = HttpService:JSONDecode(readfile(file))
 
-    self.Enabled = not self.Enabled
+        Library.Flags = data.Flags or {}
+        Library.Keybinds = data.Keybinds or {}
 
-    if self.Container then
-        self.Container.Visible = self.Enabled
-    end
-
-    if self.Shadow then
-        self.Shadow.Visible = self.Enabled
     end
 
 end
 
+Library:Load()
+
+--// CREATE WINDOW
 function Library:CreateWindow(title)
 
-    self:LoadFlags()
-
-    if self.core then
-        self.core:Destroy()
+    if CoreGui:FindFirstChild("Gnnrs") then
+        CoreGui.Gnnrs:Destroy()
     end
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "Gnnrs"
     ScreenGui.Parent = CoreGui
 
-    self.core = ScreenGui
+    local Main = Instance.new("Frame")
+    Main.Parent = ScreenGui
+    Main.Size = UDim2.new(0,500,0,400)
+    Main.Position = UDim2.new(0.5,-250,0.5,-200)
+    Main.BackgroundColor3 = Color3.fromRGB(19,20,24)
 
-    local Shadow = Instance.new("Frame")
-    Shadow.Parent = ScreenGui
-    Shadow.Size = UDim2.new(0,700,0,430)
-    Shadow.Position = UDim2.new(0.5,-350,0.5,-215)
-    Shadow.BackgroundColor3 = Color3.fromRGB(0,0,0)
-    Shadow.BackgroundTransparency = 0.3
-
-    self.Shadow = Shadow
-
-    local Container = Instance.new("Frame")
-    Container.Parent = ScreenGui
-    Container.Size = UDim2.new(0,700,0,430)
-    Container.Position = UDim2.new(0.5,-350,0.5,-215)
-    Container.BackgroundColor3 = Color3.fromRGB(19,20,24)
-
-    Instance.new("UICorner",Container).CornerRadius = UDim.new(0,12)
-
-    self.Container = Container
+    Instance.new("UICorner",Main)
 
     local Title = Instance.new("TextLabel")
-    Title.Parent = Container
+    Title.Parent = Main
     Title.Size = UDim2.new(1,0,0,40)
     Title.BackgroundTransparency = 1
     Title.Text = title or "Gnnrs"
@@ -101,191 +79,173 @@ function Library:CreateWindow(title)
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 16
 
-    local TabsFrame = Instance.new("Frame")
-    TabsFrame.Parent = Container
-    TabsFrame.Size = UDim2.new(0,180,1,-40)
-    TabsFrame.Position = UDim2.new(0,0,0,40)
-    TabsFrame.BackgroundTransparency = 1
+    local Container = Instance.new("Frame")
+    Container.Parent = Main
+    Container.Size = UDim2.new(1,-20,1,-50)
+    Container.Position = UDim2.new(0,10,0,45)
+    Container.BackgroundTransparency = 1
 
-    local UIList = Instance.new("UIListLayout",TabsFrame)
-    UIList.Padding = UDim.new(0,4)
-
-    local Pages = Instance.new("Frame")
-    Pages.Parent = Container
-    Pages.Size = UDim2.new(1,-180,1,-40)
-    Pages.Position = UDim2.new(0,180,0,40)
-    Pages.BackgroundTransparency = 1
+    local Layout = Instance.new("UIListLayout",Container)
+    Layout.Padding = UDim.new(0,5)
 
     local Window = {}
 
-    Window.Tabs = {}
+    --// CREATE TOGGLE WITH KEYBIND
+    function Window:AddToggle(cfg)
 
-    function Window:CreateTab(name)
+        local Flag = cfg.Flag
+        local Name = cfg.Name
+        local Default = cfg.Default or false
+        local Keybind = cfg.Keybind or Enum.KeyCode.E
 
-        local Button = Instance.new("TextButton")
-        Button.Parent = TabsFrame
-        Button.Size = UDim2.new(1,0,0,35)
-        Button.Text = name
-        Button.BackgroundColor3 = Color3.fromRGB(30,30,35)
-        Button.TextColor3 = Color3.new(1,1,1)
+        if Library.Flags[Flag] == nil then
+            Library.Flags[Flag] = Default
+        end
 
-        Instance.new("UICorner",Button)
+        if Library.Keybinds[Flag] == nil then
+            Library.Keybinds[Flag] = Keybind.Name
+        end
 
-        local Page = Instance.new("Frame")
-        Page.Parent = Pages
-        Page.Size = UDim2.new(1,0,1,0)
-        Page.Visible = false
-        Page.BackgroundTransparency = 1
+        local Holder = Instance.new("Frame")
+        Holder.Parent = Container
+        Holder.Size = UDim2.new(1,0,0,35)
+        Holder.BackgroundColor3 = Color3.fromRGB(27,28,33)
 
-        local Layout = Instance.new("UIListLayout",Page)
-        Layout.Padding = UDim.new(0,5)
+        Instance.new("UICorner",Holder)
 
-        Button.MouseButton1Click:Connect(function()
+        local Label = Instance.new("TextLabel")
+        Label.Parent = Holder
+        Label.BackgroundTransparency = 1
+        Label.Size = UDim2.new(0.5,0,1,0)
+        Label.Position = UDim2.new(0,10,0,0)
+        Label.Text = Name
+        Label.TextColor3 = Color3.new(1,1,1)
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 14
+        Label.TextXAlignment = Enum.TextXAlignment.Left
 
-            for _,v in pairs(Pages:GetChildren()) do
-                if v:IsA("Frame") then
-                    v.Visible = false
-                end
+        -- Checkbox
+        local Checkbox = Instance.new("Frame")
+        Checkbox.Parent = Holder
+        Checkbox.Size = UDim2.new(0,18,0,18)
+        Checkbox.Position = UDim2.new(0.7,0,0.5,-9)
+        Checkbox.BackgroundColor3 = Color3.fromRGB(22,23,27)
+
+        Instance.new("UICorner",Checkbox)
+
+        -- Keybind box
+        local KeyBox = Instance.new("TextButton")
+        KeyBox.Parent = Holder
+        KeyBox.Size = UDim2.new(0,35,0,18)
+        KeyBox.Position = UDim2.new(0.85,0,0.5,-9)
+        KeyBox.BackgroundColor3 = Color3.fromRGB(22,23,27)
+        KeyBox.Text = Library.Keybinds[Flag]
+        KeyBox.TextColor3 = Color3.new(1,1,1)
+        KeyBox.Font = Enum.Font.GothamBold
+        KeyBox.TextSize = 12
+
+        Instance.new("UICorner",KeyBox)
+
+        local waiting = false
+
+        local function Set(state)
+
+            Library.Flags[Flag] = state
+
+            Checkbox.BackgroundColor3 =
+                state and Color3.fromRGB(140,70,255)
+                or Color3.fromRGB(22,23,27)
+
+            Library:Save()
+
+            if cfg.Callback then
+                cfg.Callback(state)
             end
 
-            Page.Visible = true
+        end
+
+        Holder.MouseButton1Click:Connect(function()
+            Set(not Library.Flags[Flag])
+        end)
+
+        KeyBox.MouseButton1Click:Connect(function()
+            waiting = true
+            KeyBox.Text = "..."
+        end)
+
+        UserInputService.InputBegan:Connect(function(input,gpe)
+
+            if gpe then return end
+
+            if waiting then
+
+                Library.Keybinds[Flag] = input.KeyCode.Name
+                KeyBox.Text = input.KeyCode.Name
+
+                Library:Save()
+
+                waiting = false
+
+                return
+            end
+
+            if input.KeyCode.Name == Library.Keybinds[Flag] then
+                Set(not Library.Flags[Flag])
+            end
 
         end)
 
-        local Tab = {}
-
-        function Tab:AddToggleWithKeybind(cfg)
-
-            local Flag = cfg.Flag or cfg.Name
-
-            if Library.Flags[Flag] == nil then
-                Library.Flags[Flag] = cfg.Default or false
-            end
-
-            local Enabled = Library.Flags[Flag]
-            local Keybind = cfg.Keybind or Enum.KeyCode.E
-            local Waiting = false
-
-            local Holder = Instance.new("Frame")
-            Holder.Parent = Page
-            Holder.Size = UDim2.new(1,-10,0,30)
-            Holder.BackgroundTransparency = 1
-
-            local Label = Instance.new("TextLabel")
-            Label.Parent = Holder
-            Label.Size = UDim2.new(0.6,0,1,0)
-            Label.BackgroundTransparency = 1
-            Label.Text = cfg.Name
-            Label.TextColor3 = Color3.new(1,1,1)
-            Label.Font = Enum.Font.Gotham
-            Label.TextSize = 14
-            Label.TextXAlignment = Enum.TextXAlignment.Left
-
-            local KeyBtn = Instance.new("TextButton")
-            KeyBtn.Parent = Holder
-            KeyBtn.Size = UDim2.new(0,40,0,20)
-            KeyBtn.Position = UDim2.new(0.65,0,0.5,-10)
-            KeyBtn.Text = Keybind.Name
-            KeyBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-            KeyBtn.TextColor3 = Color3.new(1,1,1)
-
-            Instance.new("UICorner",KeyBtn)
-
-            local Toggle = Instance.new("TextButton")
-            Toggle.Parent = Holder
-            Toggle.Size = UDim2.new(0,40,0,20)
-            Toggle.Position = UDim2.new(0.85,0,0.5,-10)
-            Toggle.BackgroundColor3 =
-                Enabled and Color3.fromRGB(140,70,255)
-                or Color3.fromRGB(60,60,60)
-
-            Instance.new("UICorner",Toggle)
-
-            local function Set(state)
-
-                Enabled = state
-                Library.Flags[Flag] = state
-
-                Toggle.BackgroundColor3 =
-                    state and Color3.fromRGB(140,70,255)
-                    or Color3.fromRGB(60,60,60)
-
-                Library:SaveFlags()
-
-                if cfg.Callback then
-                    cfg.Callback(state)
-                end
-
-            end
-
-            Toggle.MouseButton1Click:Connect(function()
-                Set(not Enabled)
-            end)
-
-            KeyBtn.MouseButton1Click:Connect(function()
-
-                Waiting = true
-                KeyBtn.Text = "..."
-
-            end)
-
-            UserInputService.InputBegan:Connect(function(input,gpe)
-
-                if gpe then return end
-
-                if Waiting then
-
-                    if input.KeyCode ~= Enum.KeyCode.Unknown then
-
-                        Keybind = input.KeyCode
-                        KeyBtn.Text = Keybind.Name
-                        Waiting = false
-
-                    end
-
-                    return
-                end
-
-                if input.KeyCode == Keybind then
-                    Set(not Enabled)
-                end
-
-            end)
-
-            if cfg.Callback then
-                cfg.Callback(Enabled)
-            end
-
-        end
-
-        return Tab
+        Set(Library.Flags[Flag])
 
     end
-
-    local Mobile = Instance.new("TextButton")
-    Mobile.Parent = ScreenGui
-    Mobile.Size = UDim2.new(0,50,0,50)
-    Mobile.Position = UDim2.new(0,20,0.8,0)
-    Mobile.Text = "G"
-
-    Instance.new("UICorner",Mobile)
-
-    Mobile.MouseButton1Click:Connect(function()
-        Library:ToggleUI()
-    end)
-
-    UserInputService.InputBegan:Connect(function(input,gpe)
-
-        if gpe then return end
-
-        if input.KeyCode == Enum.KeyCode.RightControl then
-            Library:ToggleUI()
-        end
-
-    end)
 
     return Window
 
 end
 
-return Library
+
+--// =====================
+--// CREATE UI + FEATURES
+--// =====================
+
+local Window = Library:CreateWindow("Gnnrs Hub")
+
+-- Auto Parry
+Window:AddToggle({
+    Name = "Auto Parry",
+    Flag = "AutoParry",
+    Keybind = Enum.KeyCode.E,
+
+    Callback = function(state)
+
+        print("Auto Parry:",state)
+
+    end
+})
+
+-- Auto Spam
+Window:AddToggle({
+    Name = "Auto Spam",
+    Flag = "AutoSpam",
+    Keybind = Enum.KeyCode.Q,
+
+    Callback = function(state)
+
+        print("Auto Spam:",state)
+
+    end
+})
+
+-- Manual Spam
+Window:AddToggle({
+    Name = "Manual Spam",
+    Flag = "ManualSpam",
+    Keybind = Enum.KeyCode.R,
+
+    Callback = function(state)
+
+        print("Manual Spam:",state)
+
+    end
+})
+```

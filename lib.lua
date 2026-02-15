@@ -278,7 +278,7 @@ function Library.__init()
         end)
     end
 
-  AnimateGif(Cat, 60, 40, 2, 3, 5, "rbxassetid://78268840875890", 10)
+  AnimateGif(Cat, 60, 40, 2, 3, 5, "rbxassetid://95795460726010", 10)
 
   local startTime = os.time()
 

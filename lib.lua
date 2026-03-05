@@ -742,7 +742,7 @@ function Library:create_ui()
             setclipboard(DISCORD_LINK)
             Library.SendNotification({
                 title = "Discord",
-                text = "Link Discord sudah di-copy! Paste di browser kamu 💬",
+                text = "Discord link has been copied",
                 duration = 4
             })
         else

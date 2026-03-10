@@ -456,11 +456,11 @@ function Library.SendNotification(settings)
 
     -- Icon area
     local IconBg = Instance.new("Frame")
-    IconBg.Size = UDim2.new(0, 30, 0, 30)
+    IconBg.Size = UDim2.new(0, 32, 0, 32)
     IconBg.AnchorPoint = Vector2.new(0, 0.5)
-    IconBg.Position = UDim2.new(0, 20, 0.5, 0)
+    IconBg.Position = UDim2.new(0, 18, 0.5, 0)
     IconBg.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
-    IconBg.BackgroundTransparency = 0.8
+    IconBg.BackgroundTransparency = 0.75
     IconBg.BorderSizePixel = 0
     IconBg.ZIndex = 2
     IconBg.Parent = Card
@@ -470,12 +470,12 @@ function Library.SendNotification(settings)
     IconBgCorner.Parent = IconBg
 
     local NotifIcon = Instance.new("ImageLabel")
-    NotifIcon.Image = settings.icon or "rbxassetid://10653372143"
-    NotifIcon.Size = UDim2.new(0, 16, 0, 16)
+    NotifIcon.Image = settings.icon or "rbxassetid://112538196670712"
+    NotifIcon.Size = UDim2.new(0, 18, 0, 18)
     NotifIcon.AnchorPoint = Vector2.new(0.5, 0.5)
     NotifIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
     NotifIcon.BackgroundTransparency = 1
-    NotifIcon.ImageColor3 = Color3.fromRGB(100, 185, 255)
+    NotifIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
     NotifIcon.ScaleType = Enum.ScaleType.Fit
     NotifIcon.ZIndex = 3
     NotifIcon.Parent = IconBg
@@ -488,7 +488,7 @@ function Library.SendNotification(settings)
     Title.TextColor3 = Color3.fromRGB(220, 235, 255)
     Title.BackgroundTransparency = 1
     Title.Size = UDim2.new(1, -70, 0, 16)
-    Title.Position = UDim2.new(0, 60, 0, 10)
+    Title.Position = UDim2.new(0, 62, 0, 10)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.ZIndex = 2
     Title.Parent = Card
@@ -501,7 +501,7 @@ function Library.SendNotification(settings)
     Body.TextColor3 = Color3.fromRGB(160, 195, 230)
     Body.BackgroundTransparency = 1
     Body.Size = UDim2.new(1, -70, 0, 30)
-    Body.Position = UDim2.new(0, 60, 0, 28)
+    Body.Position = UDim2.new(0, 62, 0, 28)
     Body.TextXAlignment = Enum.TextXAlignment.Left
     Body.TextYAlignment = Enum.TextYAlignment.Top
     Body.TextWrapped = true
@@ -870,8 +870,8 @@ function Library:create_ui()
         setclipboard("https://discord.gg/gngstore")
         Library.SendNotification({
             title = "Discord",
-            text = "Link Discord berhasil disalin ke clipboard!",
-            icon = "rbxassetid://7547612958",
+            text = "Discord link copied to clipboard!",
+            icon = "rbxassetid://112538196670712",
             duration = 4
         })
     end)

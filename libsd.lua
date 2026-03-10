@@ -826,7 +826,7 @@ function Library:create_ui()
 
     -- Discord icon
     local DiscordIcon = Instance.new("ImageLabel")
-    DiscordIcon.Image = "rbxassetid://7547612958"
+    DiscordIcon.Image = "rbxassetid://112538196670712"
     DiscordIcon.Size = UDim2.new(0, 16, 0, 16)
     DiscordIcon.AnchorPoint = Vector2.new(0, 0.5)
     DiscordIcon.Position = UDim2.new(0, 18, 0.5, 0)
@@ -867,7 +867,7 @@ function Library:create_ui()
     end)
 
     DiscordBtn.MouseButton1Click:Connect(function()
-        setclipboard("https://discord.gg/GANTIDISINI")
+        setclipboard("https://discord.gg/gngstore")
         Library.SendNotification({
             title = "Discord",
             text = "Link Discord berhasil disalin ke clipboard!",

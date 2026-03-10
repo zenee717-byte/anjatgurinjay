@@ -642,83 +642,12 @@ function Library:create_ui()
     end)
 
     ---------------------------
-    -- Background theme (warna disamakan ke biru gelap script 2)
-    ---------------------------
-    local BlueGradient = Instance.new("Frame")
-    BlueGradient.Name = "BlueGradient"
-    BlueGradient.Size = UDim2.new(1, 0, 0.35, 0)
-    BlueGradient.Position = UDim2.new(0, 0, 0.65, 0)
-    -- WARNA DISAMAKAN: biru lebih gelap/navy sesuai script 2
-    BlueGradient.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
-    BlueGradient.BorderSizePixel = 0
-    BlueGradient.ZIndex = -3
-    BlueGradient.Parent = Container
 
-    local BGrad = Instance.new("UIGradient")
-    BGrad.Color = ColorSequence.new{
-        -- WARNA DISAMAKAN: navy -> biru -> lebih terang
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 80, 160)),
-        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(80, 120, 200)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 185, 255))
-    }
-    BGrad.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 1),    
-        NumberSequenceKeypoint.new(0.5, 0.4),
-        NumberSequenceKeypoint.new(1, 0) 
-    }
-    BGrad.Rotation = 90
-    BGrad.Parent = BlueGradient
-
-
-
-    local LightOverlay = Instance.new("Frame")
-    LightOverlay.Name = "LightOverlay"
-    LightOverlay.Size = UDim2.new(1,0,0.3,0)
-    LightOverlay.Position = UDim2.new(0,0,0.7,0)
-    -- WARNA DISAMAKAN: biru navy
-    LightOverlay.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
-    LightOverlay.BorderSizePixel = 0
-    LightOverlay.ZIndex = -1
-    LightOverlay.Parent = Container
-
-    local LGrad = Instance.new("UIGradient")
-    LGrad.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 80, 160)),
-        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(80, 120, 200)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(50, 80, 160))
-    }
-    LGrad.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.5, 0.3),
-        NumberSequenceKeypoint.new(1, 0)
-    }
-    LGrad.Rotation = 90
-    LGrad.Parent = LightOverlay
-
-    task.spawn(function()
-    while BlueGradient and BlueGradient.Parent do
-        TweenService:Create(BlueGradient, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.3
-        }):Play()
-        TweenService:Create(LightOverlay, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.4
-        }):Play()
-        task.wait(2)
-
-        TweenService:Create(BlueGradient, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.55
-        }):Play()
-        TweenService:Create(LightOverlay, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.65
-        }):Play()
-        task.wait(2)
-    end
-end)
 
 
     local CenterIcon = Instance.new("ImageLabel")
     CenterIcon.Name = "CenterIcon"
-    CenterIcon.Image = "rbxassetid://11835491319"
+    CenterIcon.Image = "rbxassetid://11835491319" -- GANTI ASSET ID DI SINI
     CenterIcon.BackgroundTransparency = 1
     CenterIcon.AnchorPoint = Vector2.new(0.5,0.5)
     CenterIcon.Position = UDim2.new(0.5,0,0.5,0)

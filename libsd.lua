@@ -551,11 +551,25 @@ function Library:create_ui()
     UICorner.Parent = Container
     
     local UIStroke = Instance.new('UIStroke')
-    -- WARNA DISAMAKAN: rgb(50,80,160) seperti script 2
-    UIStroke.Color = Color3.fromRGB(50, 80, 160)
-    UIStroke.Transparency = 0.5
+    UIStroke.Color = Color3.fromRGB(70, 130, 255)
+    UIStroke.Transparency = 0.25
+    UIStroke.Thickness = 1.5
     UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     UIStroke.Parent = Container
+
+    -- Animated glow pulse on border
+    task.spawn(function()
+        while UIStroke and UIStroke.Parent do
+            TweenService:Create(UIStroke, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Transparency = 0.05
+            }):Play()
+            task.wait(2.5)
+            TweenService:Create(UIStroke, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Transparency = 0.45
+            }):Play()
+            task.wait(2.5)
+        end
+    end)
     
     local Handler = Instance.new('Frame')
     Handler.BackgroundTransparency = 1
@@ -580,26 +594,26 @@ function Library:create_ui()
     UIListLayout.Parent = Tabs
     
     local ClientName = Instance.new('TextLabel')
-    ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
-    -- WARNA DISAMAKAN: rgb(100,185,255) seperti script 2
-    ClientName.TextColor3 = Color3.fromRGB(100, 185, 255)
-    ClientName.TextTransparency = 0.2
+    ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold)
+    ClientName.TextColor3 = Color3.fromRGB(120, 200, 255)
+    ClientName.TextTransparency = 0
     ClientName.Text = 'GG HUB'
     ClientName.Name = 'ClientName'
-    ClientName.Size = UDim2.new(0, 31, 0, 13)
+    ClientName.Size = UDim2.new(0, 70, 0, 16)
     ClientName.AnchorPoint = Vector2.new(0, 0.5)
     ClientName.Position = UDim2.new(0.056, 0, 0.055, 0)
     ClientName.BackgroundTransparency = 1
     ClientName.TextXAlignment = Enum.TextXAlignment.Left
-    ClientName.TextSize = 13
+    ClientName.TextSize = 15
     ClientName.Parent = Handler
     
     local UIGradient = Instance.new('UIGradient')
     UIGradient.Color = ColorSequence.new{
-        -- WARNA DISAMAKAN: gradient biru seperti script 2
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(160, 200, 255)),
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 185, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 225, 255)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
     }
+    UIGradient.Rotation = 45
     UIGradient.Parent = ClientName
     
     local Pin = Instance.new('Frame')
@@ -643,34 +657,125 @@ function Library:create_ui()
 
     ---------------------------
 
-
-
-    local CenterIcon = Instance.new("ImageLabel")
-    CenterIcon.Name = "CenterIcon"
-    CenterIcon.Image = "rbxassetid://105913798963350" -- GANTI ASSET ID DI SINI
-    CenterIcon.BackgroundTransparency = 1
-    CenterIcon.AnchorPoint = Vector2.new(0.5,0.5)
-    CenterIcon.Position = UDim2.new(0.5,0,0.5,0)
-    CenterIcon.Size = UDim2.new(0,180,0,180)
-    -- WARNA DISAMAKAN: biru muda
-    CenterIcon.ImageColor3 = Color3.fromRGB(160, 210, 255)
-    CenterIcon.ZIndex = 0
-    CenterIcon.Parent = Handler
-
+    -- Elegant top accent glow bar
+    local TopAccent = Instance.new("Frame")
+    TopAccent.Name = "TopAccent"
+    TopAccent.Size = UDim2.new(1, 0, 0, 2)
+    TopAccent.Position = UDim2.new(0, 0, 0, 0)
+    TopAccent.BorderSizePixel = 0
+    TopAccent.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
+    TopAccent.ZIndex = 10
+    TopAccent.Parent = Container
+    local TopAccentGrad = Instance.new("UIGradient")
+    TopAccentGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.0, Color3.fromRGB(14, 16, 28)),
+        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(80, 160, 255)),
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(160, 220, 255)),
+        ColorSequenceKeypoint.new(1.0, Color3.fromRGB(14, 16, 28))
+    }
+    TopAccentGrad.Parent = TopAccent
     task.spawn(function()
-        while CenterIcon and CenterIcon.Parent do
-            local grow = math.random(170,200)
-            local dur = math.random(8,14)
-            TweenService:Create(CenterIcon, TweenInfo.new(dur, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                Rotation = CenterIcon.Rotation + 360,
-                Size = UDim2.new(0,grow,0,grow)
-            }):Play()
-            task.wait(dur)
+        while TopAccent and TopAccent.Parent do
+            TweenService:Create(TopAccentGrad, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Offset = Vector2.new(0.35, 0)}):Play()
+            task.wait(3)
+            TweenService:Create(TopAccentGrad, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Offset = Vector2.new(-0.35, 0)}):Play()
+            task.wait(3)
         end
     end)
 
+    -- Header background gradient
+    local HeaderBg = Instance.new("Frame")
+    HeaderBg.Name = "HeaderBg"
+    HeaderBg.Size = UDim2.new(1, 0, 0, 52)
+    HeaderBg.Position = UDim2.new(0, 0, 0, 0)
+    HeaderBg.BorderSizePixel = 0
+    HeaderBg.BackgroundColor3 = Color3.fromRGB(20, 24, 44)
+    HeaderBg.ZIndex = 0
+    HeaderBg.Parent = Container
+    local HeaderGrad = Instance.new("UIGradient")
+    HeaderGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(24, 30, 58)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 16, 28))
+    }
+    HeaderGrad.Rotation = 90
+    HeaderGrad.Parent = HeaderBg
 
-    
+    -- Header bottom divider line
+    local HeaderDividerLine = Instance.new("Frame")
+    HeaderDividerLine.Name = "HeaderDividerLine"
+    HeaderDividerLine.Size = UDim2.new(1, 0, 0, 1)
+    HeaderDividerLine.Position = UDim2.new(0, 0, 0, 51)
+    HeaderDividerLine.BorderSizePixel = 0
+    HeaderDividerLine.BackgroundColor3 = Color3.fromRGB(70, 120, 220)
+    HeaderDividerLine.BackgroundTransparency = 0.5
+    HeaderDividerLine.ZIndex = 1
+    HeaderDividerLine.Parent = Container
+
+    -- Discord button at bottom of sidebar
+    local DiscordBtn = Instance.new("TextButton")
+    DiscordBtn.Name = "DiscordBtn"
+    DiscordBtn.Size = UDim2.new(0, 113, 0, 32)
+    DiscordBtn.Position = UDim2.new(0.012, 0, 0.895, 0)
+    DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    DiscordBtn.BackgroundTransparency = 0.1
+    DiscordBtn.BorderSizePixel = 0
+    DiscordBtn.AutoButtonColor = false
+    DiscordBtn.Text = ""
+    DiscordBtn.ZIndex = 5
+    DiscordBtn.Parent = Handler
+    local DiscordBtnCorner = Instance.new("UICorner")
+    DiscordBtnCorner.CornerRadius = UDim.new(0, 6)
+    DiscordBtnCorner.Parent = DiscordBtn
+    local DiscordBtnStroke = Instance.new("UIStroke")
+    DiscordBtnStroke.Color = Color3.fromRGB(120, 135, 255)
+    DiscordBtnStroke.Transparency = 0.45
+    DiscordBtnStroke.Thickness = 1
+    DiscordBtnStroke.Parent = DiscordBtn
+    local DiscordIcon = Instance.new("ImageLabel")
+    DiscordIcon.Name = "DiscordIcon"
+    DiscordIcon.Image = "rbxassetid://7547612958"
+    DiscordIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    DiscordIcon.BackgroundTransparency = 1
+    DiscordIcon.AnchorPoint = Vector2.new(0, 0.5)
+    DiscordIcon.Position = UDim2.new(0.08, 0, 0.5, 0)
+    DiscordIcon.Size = UDim2.new(0, 14, 0, 14)
+    DiscordIcon.ScaleType = Enum.ScaleType.Fit
+    DiscordIcon.ZIndex = 6
+    DiscordIcon.Parent = DiscordBtn
+    local DiscordLabel = Instance.new("TextLabel")
+    DiscordLabel.Name = "DiscordLabel"
+    DiscordLabel.Text = "Join Discord"
+    DiscordLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
+    DiscordLabel.TextColor3 = Color3.fromRGB(235, 238, 255)
+    DiscordLabel.TextSize = 11
+    DiscordLabel.BackgroundTransparency = 1
+    DiscordLabel.AnchorPoint = Vector2.new(0, 0.5)
+    DiscordLabel.Position = UDim2.new(0.3, 0, 0.5, 0)
+    DiscordLabel.Size = UDim2.new(0, 76, 0, 14)
+    DiscordLabel.TextXAlignment = Enum.TextXAlignment.Left
+    DiscordLabel.ZIndex = 6
+    DiscordLabel.Parent = DiscordBtn
+    DiscordBtn.MouseEnter:Connect(function()
+        TweenService:Create(DiscordBtn, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {
+            BackgroundColor3 = Color3.fromRGB(110, 124, 255),
+            BackgroundTransparency = 0
+        }):Play()
+    end)
+    DiscordBtn.MouseLeave:Connect(function()
+        TweenService:Create(DiscordBtn, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {
+            BackgroundColor3 = Color3.fromRGB(88, 101, 242),
+            BackgroundTransparency = 0.1
+        }):Play()
+    end)
+    DiscordBtn.MouseButton1Click:Connect(function()
+        -- GANTI LINK DISCORD KAMU DI SINI
+        setclipboard("https://discord.gg/gngstore")
+        Library.SendNotification({
+            title = "Discord",
+            text = "Link Discord berhasil dicopy ke clipboard!"
+        })
+    end)
+
     local Divider = Instance.new('Frame')
     Divider.Name = 'Divider'
     Divider.BackgroundTransparency = 0.5

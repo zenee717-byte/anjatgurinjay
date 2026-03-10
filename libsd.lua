@@ -392,8 +392,8 @@ function Library.SendNotification(settings)
     InnerFrame.Size = UDim2.new(1, 0, 0, 60)  -- Start with an initial height, width will adapt
     InnerFrame.Position = UDim2.new(0, 0, 0, 0)  -- Positioned inside the outer notification frame
     -- WARNA DISAMAKAN: rgb(22,25,45) seperti script 2
-    InnerFrame.BackgroundColor3 = Color3.fromRGB(22, 25, 45)
-    InnerFrame.BackgroundTransparency = 0.1
+    InnerFrame.BackgroundColor3 = Color3.fromRGB(14, 17, 35)
+    InnerFrame.BackgroundTransparency = 0.0
     InnerFrame.BorderSizePixel = 0
     InnerFrame.Name = "InnerFrame"
     InnerFrame.Parent = Notification
@@ -537,9 +537,8 @@ function Library:create_ui()
     Container.BorderColor3 = Color3.fromRGB(0, 0, 0)
     Container.AnchorPoint = Vector2.new(0.5, 0.5)
     Container.Name = 'Container'
-    Container.BackgroundTransparency = 0.05
-    -- WARNA DISAMAKAN: rgb(14,16,28) seperti script 2
-    Container.BackgroundColor3 = Color3.fromRGB(14, 16, 28)
+    Container.BackgroundTransparency = 0.0
+    Container.BackgroundColor3 = Color3.fromRGB(10, 12, 22)
     Container.Position = UDim2.new(0.5, 0, 0.5, 0)
     Container.Size = UDim2.new(0, 0, 0, 0)
     Container.Active = true
@@ -547,7 +546,7 @@ function Library:create_ui()
     Container.Parent = VicoX
     
     local UICorner = Instance.new('UICorner')
-    UICorner.CornerRadius = UDim.new(0, 10)
+    UICorner.CornerRadius = UDim.new(0, 14)
     UICorner.Parent = Container
     
     local UIStroke = Instance.new('UIStroke')
@@ -577,6 +576,32 @@ function Library:create_ui()
     Handler.Size = UDim2.new(0, 698, 0, 479)
     Handler.Parent = Container
     
+    -- Sidebar background panel (dark elegant)
+    local SidebarBg = Instance.new("Frame")
+    SidebarBg.Name = "SidebarBg"
+    SidebarBg.Size = UDim2.new(0, 163, 1, 0)
+    SidebarBg.Position = UDim2.new(0, 0, 0, 0)
+    SidebarBg.BackgroundColor3 = Color3.fromRGB(8, 10, 20)
+    SidebarBg.BorderSizePixel = 0
+    SidebarBg.ZIndex = 0
+    SidebarBg.Parent = Handler
+    local SidebarGrad = Instance.new("UIGradient")
+    SidebarGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 13, 26)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(6, 8, 16))
+    }
+    SidebarGrad.Rotation = 90
+    SidebarGrad.Parent = SidebarBg
+    -- Right edge accent line on sidebar
+    local SidebarEdge = Instance.new("Frame")
+    SidebarEdge.Size = UDim2.new(0, 1, 1, 0)
+    SidebarEdge.Position = UDim2.new(1, -1, 0, 0)
+    SidebarEdge.BackgroundColor3 = Color3.fromRGB(60, 110, 220)
+    SidebarEdge.BackgroundTransparency = 0.4
+    SidebarEdge.BorderSizePixel = 0
+    SidebarEdge.ZIndex = 2
+    SidebarEdge.Parent = SidebarBg
+
     local Tabs = Instance.new('ScrollingFrame')
     Tabs.ScrollBarImageTransparency = 1
     Tabs.ScrollBarThickness = 0
@@ -586,6 +611,7 @@ function Library:create_ui()
     Tabs.BackgroundTransparency = 1
     Tabs.Position = UDim2.new(0.026, 0, 0.111, 0)
     Tabs.CanvasSize = UDim2.new(0, 0, 0.5, 0)
+    Tabs.ZIndex = 3
     Tabs.Parent = Handler
     
     local UIListLayout = Instance.new('UIListLayout')
@@ -616,12 +642,35 @@ function Library:create_ui()
     UIGradient.Rotation = 45
     UIGradient.Parent = ClientName
     
+    -- Version badge next to title
+    local VersionBadge = Instance.new("Frame")
+    VersionBadge.Name = "VersionBadge"
+    VersionBadge.Size = UDim2.new(0, 28, 0, 14)
+    VersionBadge.Position = UDim2.new(0.056, 0, 0.079, 0)
+    VersionBadge.BackgroundColor3 = Color3.fromRGB(25, 60, 145)
+    VersionBadge.BackgroundTransparency = 0.2
+    VersionBadge.BorderSizePixel = 0
+    VersionBadge.ZIndex = 5
+    VersionBadge.Parent = Handler
+    local VBCorner = Instance.new("UICorner")
+    VBCorner.CornerRadius = UDim.new(0, 4)
+    VBCorner.Parent = VersionBadge
+    local VBLabel = Instance.new("TextLabel")
+    VBLabel.Text = "v2.0"
+    VBLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold)
+    VBLabel.TextColor3 = Color3.fromRGB(140, 200, 255)
+    VBLabel.TextSize = 8
+    VBLabel.BackgroundTransparency = 1
+    VBLabel.Size = UDim2.new(1, 0, 1, 0)
+    VBLabel.TextXAlignment = Enum.TextXAlignment.Center
+    VBLabel.ZIndex = 6
+    VBLabel.Parent = VersionBadge
+
     local Pin = Instance.new('Frame')
     Pin.Name = 'Pin'
     Pin.Position = UDim2.new(0.026, 0, 0.136, 0)
-    Pin.Size = UDim2.new(0, 2, 0, 16)
-    -- WARNA DISAMAKAN: rgb(100,185,255)
-    Pin.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
+    Pin.Size = UDim2.new(0, 3, 0, 18)
+    Pin.BackgroundColor3 = Color3.fromRGB(120, 200, 255)
     Pin.Parent = Handler
     
     local UICorner2 = Instance.new('UICorner')
@@ -715,7 +764,8 @@ function Library:create_ui()
     local DiscordBtn = Instance.new("TextButton")
     DiscordBtn.Name = "DiscordBtn"
     DiscordBtn.Size = UDim2.new(0, 113, 0, 32)
-    DiscordBtn.Position = UDim2.new(0.012, 0, 0.895, 0)
+    DiscordBtn.Position = UDim2.new(0.01, 0, 0.905, 0)
+    DiscordBtn.ZIndex = 10
     DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     DiscordBtn.BackgroundTransparency = 0.1
     DiscordBtn.BorderSizePixel = 0
@@ -769,7 +819,7 @@ function Library:create_ui()
     end)
     DiscordBtn.MouseButton1Click:Connect(function()
         -- GANTI LINK DISCORD KAMU DI SINI
-        setclipboard("https://discord.gg/gngstore")
+        setclipboard("https://discord.gg/GANTIDISINI")
         Library.SendNotification({
             title = "Discord",
             text = "Link Discord berhasil dicopy ke clipboard!"
@@ -783,8 +833,8 @@ function Library:create_ui()
     Divider.BorderColor3 = Color3.fromRGB(0, 0, 0)
     Divider.Size = UDim2.new(0, 1, 0, 479)
     Divider.BorderSizePixel = 0
-    -- WARNA DISAMAKAN: rgb(50,80,160)
-    Divider.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
+    Divider.BackgroundColor3 = Color3.fromRGB(40, 80, 180)
+    Divider.BackgroundTransparency = 0.2
     Divider.Parent = Handler
     
     local Sections = Instance.new('Folder')
@@ -930,7 +980,8 @@ function Library:create_ui()
                     }):Play()    
 
                     TweenService:Create(object, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                        BackgroundTransparency = 0.5
+                        BackgroundTransparency = 0.55,
+                        BackgroundColor3 = Color3.fromRGB(30, 60, 140)
                     }):Play()
 
                     TweenService:Create(object.TextLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -955,7 +1006,8 @@ function Library:create_ui()
 
             if object.BackgroundTransparency ~= 1 then
                 TweenService:Create(object, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    BackgroundTransparency = 1
+                    BackgroundTransparency = 1,
+                    BackgroundColor3 = Color3.fromRGB(25, 30, 55)
                 }):Play()
                 
                 TweenService:Create(object.TextLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -1012,13 +1064,12 @@ function Library:create_ui()
         Tab.Size = UDim2.new(0, 129, 0, 38)
         Tab.BorderSizePixel = 0
         Tab.TextSize = 14
-        -- WARNA DISAMAKAN: rgb(25,30,55)
-        Tab.BackgroundColor3 = Color3.fromRGB(25, 30, 55)
+        Tab.BackgroundColor3 = Color3.fromRGB(18, 22, 45)
         Tab.Parent = Tabs
         Tab.LayoutOrder = self._tab
         
         local UICorner = Instance.new('UICorner')
-        UICorner.CornerRadius = UDim.new(0, 5)
+        UICorner.CornerRadius = UDim.new(0, 7)
         UICorner.Parent = Tab
         
         local TextLabel = Instance.new('TextLabel')
@@ -1145,27 +1196,35 @@ function Library:create_ui()
             local Module = Instance.new('Frame')
             Module.ClipsDescendants = true
             Module.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            Module.BackgroundTransparency = 0.5
+            Module.BackgroundTransparency = 0.0
             Module.Position = UDim2.new(0.004115226212888956, 0, 0, 0)
             Module.Name = 'Module'
             Module.Size = UDim2.new(0, 241, 0, 93)
             Module.BorderSizePixel = 0
-            -- WARNA DISAMAKAN: rgb(19,22,42)
-            Module.BackgroundColor3 = Color3.fromRGB(19, 22, 42)
+            Module.BackgroundColor3 = Color3.fromRGB(14, 17, 35)
             Module.Parent = settings.section
 
             local UIListLayout = Instance.new('UIListLayout')
             UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
             UIListLayout.Parent = Module
             
+            -- Inner gradient for depth
+            local ModuleGrad = Instance.new("UIGradient")
+            ModuleGrad.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 25, 50)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 13, 28))
+            }
+            ModuleGrad.Rotation = 135
+            ModuleGrad.Parent = Module
+
             local UICorner = Instance.new('UICorner')
-            UICorner.CornerRadius = UDim.new(0, 5)
+            UICorner.CornerRadius = UDim.new(0, 8)
             UICorner.Parent = Module
             
             local UIStroke = Instance.new('UIStroke')
-            -- WARNA DISAMAKAN: rgb(50,80,160)
-            UIStroke.Color = Color3.fromRGB(50, 80, 160)
-            UIStroke.Transparency = 0.5
+            UIStroke.Color = Color3.fromRGB(55, 95, 200)
+            UIStroke.Transparency = 0.35
+            UIStroke.Thickness = 1
             UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
             UIStroke.Parent = Module
             
@@ -1182,6 +1241,22 @@ function Library:create_ui()
             Header.TextSize = 14
             Header.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Header.Parent = Module
+            -- Thin top accent line per card
+            local CardAccent = Instance.new("Frame")
+            CardAccent.Size = UDim2.new(0.6, 0, 0, 1)
+            CardAccent.Position = UDim2.new(0.2, 0, 0, 0)
+            CardAccent.BackgroundColor3 = Color3.fromRGB(80, 150, 255)
+            CardAccent.BackgroundTransparency = 0.4
+            CardAccent.BorderSizePixel = 0
+            CardAccent.ZIndex = 5
+            CardAccent.Parent = Header
+            local CardAccentGrad = Instance.new("UIGradient")
+            CardAccentGrad.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 13, 28)),
+                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 185, 255)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 13, 28))
+            }
+            CardAccentGrad.Parent = CardAccent
             
             local Icon = Instance.new('ImageLabel')
             -- WARNA DISAMAKAN: rgb(100,185,255)
@@ -1219,6 +1294,7 @@ function Library:create_ui()
             ModuleName.BorderSizePixel = 0
             ModuleName.BorderColor3 = Color3.fromRGB(0, 0, 0)
             ModuleName.TextSize = 13
+            ModuleName.TextStrokeTransparency = 0.8
             ModuleName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ModuleName.Parent = Header
             
@@ -1242,7 +1318,7 @@ function Library:create_ui()
             
             local Toggle = Instance.new('Frame')
             Toggle.Name = 'Toggle'
-            Toggle.BackgroundTransparency = 0.699999988079071
+            Toggle.BackgroundTransparency = 0.3
             Toggle.Position = UDim2.new(0.8199999928474426, 0, 0.7570000290870667, 0)
             Toggle.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Toggle.Size = UDim2.new(0, 25, 0, 12)
@@ -1273,13 +1349,12 @@ function Library:create_ui()
             
             local Keybind = Instance.new('Frame')
             Keybind.Name = 'Keybind'
-            Keybind.BackgroundTransparency = 0.699999988079071
+            Keybind.BackgroundTransparency = 0.15
             Keybind.Position = UDim2.new(0.15000000596046448, 0, 0.7350000143051147, 0)
             Keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Keybind.Size = UDim2.new(0, 33, 0, 15)
             Keybind.BorderSizePixel = 0
-            -- WARNA DISAMAKAN: rgb(100,185,255)
-            Keybind.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
+            Keybind.BackgroundColor3 = Color3.fromRGB(25, 60, 140)
             Keybind.Parent = Header
             
             local UICorner = Instance.new('UICorner')
@@ -1305,13 +1380,12 @@ function Library:create_ui()
             local Divider = Instance.new('Frame')
             Divider.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Divider.AnchorPoint = Vector2.new(0.5, 0)
-            Divider.BackgroundTransparency = 0.5
+            Divider.BackgroundTransparency = 0.6
             Divider.Position = UDim2.new(0.5, 0, 0.6200000047683716, 0)
             Divider.Name = 'Divider'
-            Divider.Size = UDim2.new(0, 241, 0, 1)
+            Divider.Size = UDim2.new(0, 220, 0, 1)
             Divider.BorderSizePixel = 0
-            -- WARNA DISAMAKAN: rgb(50,80,160)
-            Divider.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
+            Divider.BackgroundColor3 = Color3.fromRGB(60, 110, 220)
             Divider.Parent = Header
             
             local Divider = Instance.new('Frame')

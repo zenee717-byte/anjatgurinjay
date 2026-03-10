@@ -736,7 +736,7 @@ wait(1.0)
     -- WARNA DISAMAKAN: rgb(100,185,255) seperti script 2
     ClientName.TextColor3 = Color3.fromRGB(100, 185, 255)
     ClientName.TextTransparency = 0.2
-    ClientName.Text = 'VicoX'
+    ClientName.Text = 'GG HUB'
     ClientName.Name = 'ClientName'
     ClientName.Size = UDim2.new(0, 31, 0, 13)
     ClientName.AnchorPoint = Vector2.new(0, 0.5)
@@ -796,100 +796,6 @@ wait(1.0)
     ---------------------------
     -- Background theme (warna disamakan ke biru gelap script 2)
     ---------------------------
-    local BlueGradient = Instance.new("Frame")
-    BlueGradient.Name = "BlueGradient"
-    BlueGradient.Size = UDim2.new(1, 0, 0.35, 0)
-    BlueGradient.Position = UDim2.new(0, 0, 0.65, 0)
-    -- WARNA DISAMAKAN: biru lebih gelap/navy sesuai script 2
-    BlueGradient.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
-    BlueGradient.BorderSizePixel = 0
-    BlueGradient.ZIndex = -3
-    BlueGradient.Parent = Container
-
-    local BGrad = Instance.new("UIGradient")
-    BGrad.Color = ColorSequence.new{
-        -- WARNA DISAMAKAN: navy -> biru -> lebih terang
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 80, 160)),
-        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(80, 120, 200)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 185, 255))
-    }
-    BGrad.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 1),    
-        NumberSequenceKeypoint.new(0.5, 0.4),
-        NumberSequenceKeypoint.new(1, 0) 
-    }
-    BGrad.Rotation = 90
-    BGrad.Parent = BlueGradient
-
-
-    local SnowFog = Instance.new("ImageLabel")
-    SnowFog.Name = "SnowFog"
-    SnowFog.Image = "rbxassetid://92809005659269"
-    -- WARNA DISAMAKAN: biru muda
-    SnowFog.ImageColor3 = Color3.fromRGB(150, 200, 255)
-    SnowFog.ImageTransparency = 0.55
-    SnowFog.BackgroundTransparency = 1
-    SnowFog.Size = UDim2.new(1.15, 0, 0.42, 0)
-    SnowFog.Position = UDim2.new(-0.075, 0, 0.58, 0)
-    SnowFog.ZIndex = -2
-    SnowFog.Parent = Container
-
-    task.spawn(function()
-        while SnowFog and SnowFog.Parent do
-            TweenService:Create(SnowFog, TweenInfo.new(25, Enum.EasingStyle.Linear), {Position = UDim2.new(0.075,0,0.58,0)}):Play()
-            task.wait(25)
-            TweenService:Create(SnowFog, TweenInfo.new(25, Enum.EasingStyle.Linear), {Position = UDim2.new(-0.075,0,0.58,0)}):Play()
-            task.wait(25)
-        end
-    end)
-
-    local LightOverlay = Instance.new("Frame")
-    LightOverlay.Name = "LightOverlay"
-    LightOverlay.Size = UDim2.new(1,0,0.3,0)
-    LightOverlay.Position = UDim2.new(0,0,0.7,0)
-    -- WARNA DISAMAKAN: biru navy
-    LightOverlay.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
-    LightOverlay.BorderSizePixel = 0
-    LightOverlay.ZIndex = -1
-    LightOverlay.Parent = Container
-
-    local LGrad = Instance.new("UIGradient")
-    LGrad.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 80, 160)),
-        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(80, 120, 200)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(50, 80, 160))
-    }
-    LGrad.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.5, 0.3),
-        NumberSequenceKeypoint.new(1, 0)
-    }
-    LGrad.Rotation = 90
-    LGrad.Parent = LightOverlay
-
-    task.spawn(function()
-    while BlueGradient and BlueGradient.Parent do
-        TweenService:Create(BlueGradient, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.3
-        }):Play()
-        TweenService:Create(LightOverlay, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.4
-        }):Play()
-        task.wait(2)
-
-        TweenService:Create(BlueGradient, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.55
-        }):Play()
-        TweenService:Create(LightOverlay, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.65
-        }):Play()
-        task.wait(2)
-    end
-end)
-
-
-
-    
     local Divider = Instance.new('Frame')
     Divider.Name = 'Divider'
     Divider.BackgroundTransparency = 0.5
@@ -920,7 +826,70 @@ end)
     Minimize.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Minimize.Parent = Handler
     
-    local UIScale = Instance.new('UIScale')
+    -- Discord Button
+    local DiscordBtn = Instance.new("TextButton")
+    DiscordBtn.Name = "DiscordBtn"
+    DiscordBtn.Size = UDim2.new(0, 113, 0, 32)
+    DiscordBtn.Position = UDim2.new(0.01, 0, 0.895, 0)
+    DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    DiscordBtn.BorderSizePixel = 0
+    DiscordBtn.Text = ""
+    DiscordBtn.AutoButtonColor = false
+    DiscordBtn.ZIndex = 10
+    DiscordBtn.Parent = Handler
+
+    local DBtnCorner = Instance.new("UICorner")
+    DBtnCorner.CornerRadius = UDim.new(0, 8)
+    DBtnCorner.Parent = DiscordBtn
+
+    local DBtnStroke = Instance.new("UIStroke")
+    DBtnStroke.Color = Color3.fromRGB(110, 124, 255)
+    DBtnStroke.Transparency = 0.5
+    DBtnStroke.Thickness = 1
+    DBtnStroke.Parent = DiscordBtn
+
+    local DiscordIcon = Instance.new("ImageLabel")
+    DiscordIcon.Image = "rbxassetid://7547612958"
+    DiscordIcon.Size = UDim2.new(0, 18, 0, 18)
+    DiscordIcon.Position = UDim2.new(0.07, 0, 0.5, 0)
+    DiscordIcon.AnchorPoint = Vector2.new(0, 0.5)
+    DiscordIcon.BackgroundTransparency = 1
+    DiscordIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    DiscordIcon.ZIndex = 11
+    DiscordIcon.Parent = DiscordBtn
+
+    local DiscordLabel = Instance.new("TextLabel")
+    DiscordLabel.Text = "Join Discord"
+    DiscordLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
+    DiscordLabel.TextSize = 12
+    DiscordLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DiscordLabel.BackgroundTransparency = 1
+    DiscordLabel.Size = UDim2.new(0, 75, 1, 0)
+    DiscordLabel.Position = UDim2.new(0.28, 0, 0, 0)
+    DiscordLabel.TextXAlignment = Enum.TextXAlignment.Left
+    DiscordLabel.ZIndex = 11
+    DiscordLabel.Parent = DiscordBtn
+
+    DiscordBtn.MouseEnter:Connect(function()
+        TweenService:Create(DiscordBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(110, 124, 255)
+        }):Play()
+    end)
+    DiscordBtn.MouseLeave:Connect(function()
+        TweenService:Create(DiscordBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+        }):Play()
+    end)
+    DiscordBtn.MouseButton1Click:Connect(function()
+        setclipboard("https://discord.gg/GANTIDISINI")
+        Library.SendNotification({
+            title = "Discord",
+            text = "Link Discord telah disalin!",
+            duration = 3
+        })
+    end)
+
+        local UIScale = Instance.new('UIScale')
     UIScale.Parent = Container    
     
     self._ui = VicoX

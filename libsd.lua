@@ -647,7 +647,7 @@ function Library:create_ui()
 
     local CenterIcon = Instance.new("ImageLabel")
     CenterIcon.Name = "CenterIcon"
-    CenterIcon.Image = "rbxassetid://11835491319" -- GANTI ASSET ID DI SINI
+    CenterIcon.Image = "rbxassetid://105913798963350" -- GANTI ASSET ID DI SINI
     CenterIcon.BackgroundTransparency = 1
     CenterIcon.AnchorPoint = Vector2.new(0.5,0.5)
     CenterIcon.Position = UDim2.new(0.5,0,0.5,0)

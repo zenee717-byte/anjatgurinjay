@@ -392,8 +392,8 @@ function Library.SendNotification(settings)
     InnerFrame.Size = UDim2.new(1, 0, 0, 60)  -- Start with an initial height, width will adapt
     InnerFrame.Position = UDim2.new(0, 0, 0, 0)  -- Positioned inside the outer notification frame
     -- WARNA DISAMAKAN: rgb(22,25,45) seperti script 2
-    InnerFrame.BackgroundColor3 = Color3.fromRGB(14, 17, 35)
-    InnerFrame.BackgroundTransparency = 0.0
+    InnerFrame.BackgroundColor3 = Color3.fromRGB(22, 25, 45)
+    InnerFrame.BackgroundTransparency = 0.1
     InnerFrame.BorderSizePixel = 0
     InnerFrame.Name = "InnerFrame"
     InnerFrame.Parent = Notification
@@ -529,6 +529,158 @@ function Library:create_ui()
     VicoX.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     VicoX.Parent = CoreGui
 
+    local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+-- ScreenGui untuk intro
+local IntroGui = Instance.new("ScreenGui")
+IntroGui.IgnoreGuiInset = true
+IntroGui.ResetOnSpawn = false
+IntroGui.Parent = PlayerGui
+
+-- FRAME FULL
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(1,0,1,0)
+-- WARNA DISAMAKAN: intro background tetap hitam untuk kontras
+Frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+Frame.BorderSizePixel = 0
+Frame.Parent = IntroGui
+
+-- CIRCLE MASK (untuk reveal)
+local Circle = Instance.new("ImageLabel")
+Circle.AnchorPoint = Vector2.new(0.5,0.5)
+Circle.Position = UDim2.new(0.5,0,0.5,0)
+Circle.Size = UDim2.new(0,0,0,0)
+Circle.Image = "rbxassetid://4695575676" -- lingkaran putih
+Circle.BackgroundTransparency = 1
+-- WARNA DISAMAKAN: aksen biru rgb(100,185,255)
+Circle.ImageColor3 = Color3.fromRGB(100, 185, 255)
+Circle.Parent = Frame
+
+-- LOGO
+local Logo = Instance.new("ImageLabel")
+Logo.AnchorPoint = Vector2.new(0.5,0.5)
+Logo.Position = UDim2.new(0.5,0,0.5,0)
+Logo.Size = UDim2.new(0,200,0,200)
+Logo.Image = "rbxassetid://11835491319"
+Logo.ImageTransparency = 1
+Logo.BackgroundTransparency = 1
+Logo.Parent = Frame
+
+-- TEKS
+local Text = Instance.new("TextLabel")
+Text.AnchorPoint = Vector2.new(0.5,0.5)
+Text.Position = UDim2.new(0.5,0,0.8,0)
+Text.Size = UDim2.new(0,400,0,60)
+Text.Text = ""
+Text.Font = Enum.Font.GothamBold
+Text.TextSize = 48
+-- WARNA DISAMAKAN: rgb(200,220,255) -> sesuai script 2
+Text.TextColor3 = Color3.fromRGB(200, 220, 255)
+Text.BackgroundTransparency = 1
+Text.TextTransparency = 1
+Text.Parent = Frame
+
+-- EFFECT: SHINE
+local Shine = Instance.new("ImageLabel")
+Shine.AnchorPoint = Vector2.new(0.5,0.5)
+Shine.Size = UDim2.new(0,250,0,80)
+Shine.Position = UDim2.new(-0.5,0,0.5,0)
+Shine.Image = "rbxassetid://94198359"
+Shine.ImageTransparency = 0.5
+Shine.BackgroundTransparency = 1
+Shine.Rotation = -20
+Shine.Parent = Logo
+
+-- PARTICLE BURST (fake dengan frames kecil)
+local function spawnBurst()
+	for i = 1,15 do
+		local Dot = Instance.new("Frame")
+		Dot.Size = UDim2.new(0, math.random(4,8), 0, math.random(4,8))
+		Dot.Position = UDim2.new(0.5,0,0.5,0)
+		Dot.AnchorPoint = Vector2.new(0.5,0.5)
+        -- WARNA DISAMAKAN: partikel biru
+		Dot.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
+		Dot.BackgroundTransparency = 0
+		Dot.Parent = Frame
+		Dot.ZIndex = 999
+
+		local goal = {}
+		goal.Position = UDim2.new(0.5 + math.random(-200,200)/500, 0, 0.5 + math.random(-200,200)/500, 0)
+		goal.BackgroundTransparency = 1
+
+		local tw = TweenService:Create(Dot, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal)
+		tw:Play()
+		game.Debris:AddItem(Dot, 1)
+	end
+end
+
+-- TYPING EFFECT
+local function typeText(target)
+	Text.Text = ""
+	Text.TextTransparency = 0
+	for i = 1, #target do
+		Text.Text = string.sub(target,1,i)
+		task.wait(0.05)
+	end
+end
+
+-- ANIMASI
+task.spawn(function()
+	-- 1. Circle Reveal
+	TweenService:Create(Circle, TweenInfo.new(1.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+		Size = UDim2.new(2,0,2,0)
+	}):Play()
+	task.wait(0.6)
+
+	-- 2. Logo Fade In
+	TweenService:Create(Logo, TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+		ImageTransparency = 0
+	}):Play()
+
+	-- 3. Shine Sweep
+	task.wait(0.5)
+	TweenService:Create(Shine, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+		Position = UDim2.new(1.5,0,0.5,0)
+	}):Play()
+
+	-- 4. Typing Effect
+	task.wait(0.3)
+	typeText("VicoX")
+
+	-- 5. Burst + Parallax bounce
+	spawnBurst()
+	for i = 1,2 do
+		TweenService:Create(Logo, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Size = UDim2.new(0,210,0,210)
+		}):Play()
+		task.wait(0.6)
+		TweenService:Create(Logo, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Size = UDim2.new(0,200,0,200)
+		}):Play()
+		task.wait(0.6)
+	end
+
+	-- 6. Outro Fade
+	task.wait(0.5)
+	TweenService:Create(Frame, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
+		BackgroundTransparency = 1
+	}):Play()
+	TweenService:Create(Logo, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
+		ImageTransparency = 1
+	}):Play()
+	TweenService:Create(Text, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
+		TextTransparency = 1
+	}):Play()
+
+	task.wait(2.0)
+	IntroGui:Destroy()
+end)
+
+wait(1.0)
 
 
     
@@ -537,8 +689,9 @@ function Library:create_ui()
     Container.BorderColor3 = Color3.fromRGB(0, 0, 0)
     Container.AnchorPoint = Vector2.new(0.5, 0.5)
     Container.Name = 'Container'
-    Container.BackgroundTransparency = 0.0
-    Container.BackgroundColor3 = Color3.fromRGB(10, 12, 22)
+    Container.BackgroundTransparency = 0.05
+    -- WARNA DISAMAKAN: rgb(14,16,28) seperti script 2
+    Container.BackgroundColor3 = Color3.fromRGB(14, 16, 28)
     Container.Position = UDim2.new(0.5, 0, 0.5, 0)
     Container.Size = UDim2.new(0, 0, 0, 0)
     Container.Active = true
@@ -546,29 +699,15 @@ function Library:create_ui()
     Container.Parent = VicoX
     
     local UICorner = Instance.new('UICorner')
-    UICorner.CornerRadius = UDim.new(0, 14)
+    UICorner.CornerRadius = UDim.new(0, 10)
     UICorner.Parent = Container
     
     local UIStroke = Instance.new('UIStroke')
-    UIStroke.Color = Color3.fromRGB(70, 130, 255)
-    UIStroke.Transparency = 0.25
-    UIStroke.Thickness = 1.5
+    -- WARNA DISAMAKAN: rgb(50,80,160) seperti script 2
+    UIStroke.Color = Color3.fromRGB(50, 80, 160)
+    UIStroke.Transparency = 0.5
     UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     UIStroke.Parent = Container
-
-    -- Animated glow pulse on border
-    task.spawn(function()
-        while UIStroke and UIStroke.Parent do
-            TweenService:Create(UIStroke, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                Transparency = 0.05
-            }):Play()
-            task.wait(2.5)
-            TweenService:Create(UIStroke, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                Transparency = 0.45
-            }):Play()
-            task.wait(2.5)
-        end
-    end)
     
     local Handler = Instance.new('Frame')
     Handler.BackgroundTransparency = 1
@@ -576,32 +715,6 @@ function Library:create_ui()
     Handler.Size = UDim2.new(0, 698, 0, 479)
     Handler.Parent = Container
     
-    -- Sidebar background panel (dark elegant)
-    local SidebarBg = Instance.new("Frame")
-    SidebarBg.Name = "SidebarBg"
-    SidebarBg.Size = UDim2.new(0, 163, 1, 0)
-    SidebarBg.Position = UDim2.new(0, 0, 0, 0)
-    SidebarBg.BackgroundColor3 = Color3.fromRGB(8, 10, 20)
-    SidebarBg.BorderSizePixel = 0
-    SidebarBg.ZIndex = 0
-    SidebarBg.Parent = Handler
-    local SidebarGrad = Instance.new("UIGradient")
-    SidebarGrad.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 13, 26)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(6, 8, 16))
-    }
-    SidebarGrad.Rotation = 90
-    SidebarGrad.Parent = SidebarBg
-    -- Right edge accent line on sidebar
-    local SidebarEdge = Instance.new("Frame")
-    SidebarEdge.Size = UDim2.new(0, 1, 1, 0)
-    SidebarEdge.Position = UDim2.new(1, -1, 0, 0)
-    SidebarEdge.BackgroundColor3 = Color3.fromRGB(60, 110, 220)
-    SidebarEdge.BackgroundTransparency = 0.4
-    SidebarEdge.BorderSizePixel = 0
-    SidebarEdge.ZIndex = 2
-    SidebarEdge.Parent = SidebarBg
-
     local Tabs = Instance.new('ScrollingFrame')
     Tabs.ScrollBarImageTransparency = 1
     Tabs.ScrollBarThickness = 0
@@ -611,7 +724,6 @@ function Library:create_ui()
     Tabs.BackgroundTransparency = 1
     Tabs.Position = UDim2.new(0.026, 0, 0.111, 0)
     Tabs.CanvasSize = UDim2.new(0, 0, 0.5, 0)
-    Tabs.ZIndex = 3
     Tabs.Parent = Handler
     
     local UIListLayout = Instance.new('UIListLayout')
@@ -620,57 +732,34 @@ function Library:create_ui()
     UIListLayout.Parent = Tabs
     
     local ClientName = Instance.new('TextLabel')
-    ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold)
-    ClientName.TextColor3 = Color3.fromRGB(120, 200, 255)
-    ClientName.TextTransparency = 0
-    ClientName.Text = 'GG HUB'
+    ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
+    -- WARNA DISAMAKAN: rgb(100,185,255) seperti script 2
+    ClientName.TextColor3 = Color3.fromRGB(100, 185, 255)
+    ClientName.TextTransparency = 0.2
+    ClientName.Text = 'VicoX'
     ClientName.Name = 'ClientName'
-    ClientName.Size = UDim2.new(0, 70, 0, 16)
+    ClientName.Size = UDim2.new(0, 31, 0, 13)
     ClientName.AnchorPoint = Vector2.new(0, 0.5)
     ClientName.Position = UDim2.new(0.056, 0, 0.055, 0)
     ClientName.BackgroundTransparency = 1
     ClientName.TextXAlignment = Enum.TextXAlignment.Left
-    ClientName.TextSize = 15
+    ClientName.TextSize = 13
     ClientName.Parent = Handler
     
     local UIGradient = Instance.new('UIGradient')
     UIGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 185, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 225, 255)),
+        -- WARNA DISAMAKAN: gradient biru seperti script 2
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(160, 200, 255)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
     }
-    UIGradient.Rotation = 45
     UIGradient.Parent = ClientName
     
-    -- Version badge next to title
-    local VersionBadge = Instance.new("Frame")
-    VersionBadge.Name = "VersionBadge"
-    VersionBadge.Size = UDim2.new(0, 28, 0, 14)
-    VersionBadge.Position = UDim2.new(0.056, 0, 0.079, 0)
-    VersionBadge.BackgroundColor3 = Color3.fromRGB(25, 60, 145)
-    VersionBadge.BackgroundTransparency = 0.2
-    VersionBadge.BorderSizePixel = 0
-    VersionBadge.ZIndex = 5
-    VersionBadge.Parent = Handler
-    local VBCorner = Instance.new("UICorner")
-    VBCorner.CornerRadius = UDim.new(0, 4)
-    VBCorner.Parent = VersionBadge
-    local VBLabel = Instance.new("TextLabel")
-    VBLabel.Text = "v2.0"
-    VBLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold)
-    VBLabel.TextColor3 = Color3.fromRGB(140, 200, 255)
-    VBLabel.TextSize = 8
-    VBLabel.BackgroundTransparency = 1
-    VBLabel.Size = UDim2.new(1, 0, 1, 0)
-    VBLabel.TextXAlignment = Enum.TextXAlignment.Center
-    VBLabel.ZIndex = 6
-    VBLabel.Parent = VersionBadge
-
     local Pin = Instance.new('Frame')
     Pin.Name = 'Pin'
     Pin.Position = UDim2.new(0.026, 0, 0.136, 0)
-    Pin.Size = UDim2.new(0, 3, 0, 18)
-    Pin.BackgroundColor3 = Color3.fromRGB(120, 200, 255)
+    Pin.Size = UDim2.new(0, 2, 0, 16)
+    -- WARNA DISAMAKAN: rgb(100,185,255)
+    Pin.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
     Pin.Parent = Handler
     
     local UICorner2 = Instance.new('UICorner')
@@ -705,127 +794,102 @@ function Library:create_ui()
     end)
 
     ---------------------------
+    -- Background theme (warna disamakan ke biru gelap script 2)
+    ---------------------------
+    local BlueGradient = Instance.new("Frame")
+    BlueGradient.Name = "BlueGradient"
+    BlueGradient.Size = UDim2.new(1, 0, 0.35, 0)
+    BlueGradient.Position = UDim2.new(0, 0, 0.65, 0)
+    -- WARNA DISAMAKAN: biru lebih gelap/navy sesuai script 2
+    BlueGradient.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
+    BlueGradient.BorderSizePixel = 0
+    BlueGradient.ZIndex = -3
+    BlueGradient.Parent = Container
 
-    -- Elegant top accent glow bar
-    local TopAccent = Instance.new("Frame")
-    TopAccent.Name = "TopAccent"
-    TopAccent.Size = UDim2.new(1, 0, 0, 2)
-    TopAccent.Position = UDim2.new(0, 0, 0, 0)
-    TopAccent.BorderSizePixel = 0
-    TopAccent.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
-    TopAccent.ZIndex = 10
-    TopAccent.Parent = Container
-    local TopAccentGrad = Instance.new("UIGradient")
-    TopAccentGrad.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0.0, Color3.fromRGB(14, 16, 28)),
-        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(80, 160, 255)),
-        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(160, 220, 255)),
-        ColorSequenceKeypoint.new(1.0, Color3.fromRGB(14, 16, 28))
+    local BGrad = Instance.new("UIGradient")
+    BGrad.Color = ColorSequence.new{
+        -- WARNA DISAMAKAN: navy -> biru -> lebih terang
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 80, 160)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(80, 120, 200)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 185, 255))
     }
-    TopAccentGrad.Parent = TopAccent
+    BGrad.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 1),    
+        NumberSequenceKeypoint.new(0.5, 0.4),
+        NumberSequenceKeypoint.new(1, 0) 
+    }
+    BGrad.Rotation = 90
+    BGrad.Parent = BlueGradient
+
+
+    local SnowFog = Instance.new("ImageLabel")
+    SnowFog.Name = "SnowFog"
+    SnowFog.Image = "rbxassetid://92809005659269"
+    -- WARNA DISAMAKAN: biru muda
+    SnowFog.ImageColor3 = Color3.fromRGB(150, 200, 255)
+    SnowFog.ImageTransparency = 0.55
+    SnowFog.BackgroundTransparency = 1
+    SnowFog.Size = UDim2.new(1.15, 0, 0.42, 0)
+    SnowFog.Position = UDim2.new(-0.075, 0, 0.58, 0)
+    SnowFog.ZIndex = -2
+    SnowFog.Parent = Container
+
     task.spawn(function()
-        while TopAccent and TopAccent.Parent do
-            TweenService:Create(TopAccentGrad, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Offset = Vector2.new(0.35, 0)}):Play()
-            task.wait(3)
-            TweenService:Create(TopAccentGrad, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Offset = Vector2.new(-0.35, 0)}):Play()
-            task.wait(3)
+        while SnowFog and SnowFog.Parent do
+            TweenService:Create(SnowFog, TweenInfo.new(25, Enum.EasingStyle.Linear), {Position = UDim2.new(0.075,0,0.58,0)}):Play()
+            task.wait(25)
+            TweenService:Create(SnowFog, TweenInfo.new(25, Enum.EasingStyle.Linear), {Position = UDim2.new(-0.075,0,0.58,0)}):Play()
+            task.wait(25)
         end
     end)
 
-    -- Header background gradient
-    local HeaderBg = Instance.new("Frame")
-    HeaderBg.Name = "HeaderBg"
-    HeaderBg.Size = UDim2.new(1, 0, 0, 52)
-    HeaderBg.Position = UDim2.new(0, 0, 0, 0)
-    HeaderBg.BorderSizePixel = 0
-    HeaderBg.BackgroundColor3 = Color3.fromRGB(20, 24, 44)
-    HeaderBg.ZIndex = 0
-    HeaderBg.Parent = Container
-    local HeaderGrad = Instance.new("UIGradient")
-    HeaderGrad.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(24, 30, 58)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 16, 28))
+    local LightOverlay = Instance.new("Frame")
+    LightOverlay.Name = "LightOverlay"
+    LightOverlay.Size = UDim2.new(1,0,0.3,0)
+    LightOverlay.Position = UDim2.new(0,0,0.7,0)
+    -- WARNA DISAMAKAN: biru navy
+    LightOverlay.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
+    LightOverlay.BorderSizePixel = 0
+    LightOverlay.ZIndex = -1
+    LightOverlay.Parent = Container
+
+    local LGrad = Instance.new("UIGradient")
+    LGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 80, 160)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(80, 120, 200)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(50, 80, 160))
     }
-    HeaderGrad.Rotation = 90
-    HeaderGrad.Parent = HeaderBg
+    LGrad.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.5, 0.3),
+        NumberSequenceKeypoint.new(1, 0)
+    }
+    LGrad.Rotation = 90
+    LGrad.Parent = LightOverlay
 
-    -- Header bottom divider line
-    local HeaderDividerLine = Instance.new("Frame")
-    HeaderDividerLine.Name = "HeaderDividerLine"
-    HeaderDividerLine.Size = UDim2.new(1, 0, 0, 1)
-    HeaderDividerLine.Position = UDim2.new(0, 0, 0, 51)
-    HeaderDividerLine.BorderSizePixel = 0
-    HeaderDividerLine.BackgroundColor3 = Color3.fromRGB(70, 120, 220)
-    HeaderDividerLine.BackgroundTransparency = 0.5
-    HeaderDividerLine.ZIndex = 1
-    HeaderDividerLine.Parent = Container
-
-    -- Discord button at bottom of sidebar
-    local DiscordBtn = Instance.new("TextButton")
-    DiscordBtn.Name = "DiscordBtn"
-    DiscordBtn.Size = UDim2.new(0, 113, 0, 32)
-    DiscordBtn.Position = UDim2.new(0.01, 0, 0.905, 0)
-    DiscordBtn.ZIndex = 10
-    DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-    DiscordBtn.BackgroundTransparency = 0.1
-    DiscordBtn.BorderSizePixel = 0
-    DiscordBtn.AutoButtonColor = false
-    DiscordBtn.Text = ""
-    DiscordBtn.ZIndex = 5
-    DiscordBtn.Parent = Handler
-    local DiscordBtnCorner = Instance.new("UICorner")
-    DiscordBtnCorner.CornerRadius = UDim.new(0, 6)
-    DiscordBtnCorner.Parent = DiscordBtn
-    local DiscordBtnStroke = Instance.new("UIStroke")
-    DiscordBtnStroke.Color = Color3.fromRGB(120, 135, 255)
-    DiscordBtnStroke.Transparency = 0.45
-    DiscordBtnStroke.Thickness = 1
-    DiscordBtnStroke.Parent = DiscordBtn
-    local DiscordIcon = Instance.new("ImageLabel")
-    DiscordIcon.Name = "DiscordIcon"
-    DiscordIcon.Image = "rbxassetid://7547612958"
-    DiscordIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-    DiscordIcon.BackgroundTransparency = 1
-    DiscordIcon.AnchorPoint = Vector2.new(0, 0.5)
-    DiscordIcon.Position = UDim2.new(0.08, 0, 0.5, 0)
-    DiscordIcon.Size = UDim2.new(0, 14, 0, 14)
-    DiscordIcon.ScaleType = Enum.ScaleType.Fit
-    DiscordIcon.ZIndex = 6
-    DiscordIcon.Parent = DiscordBtn
-    local DiscordLabel = Instance.new("TextLabel")
-    DiscordLabel.Name = "DiscordLabel"
-    DiscordLabel.Text = "Join Discord"
-    DiscordLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
-    DiscordLabel.TextColor3 = Color3.fromRGB(235, 238, 255)
-    DiscordLabel.TextSize = 11
-    DiscordLabel.BackgroundTransparency = 1
-    DiscordLabel.AnchorPoint = Vector2.new(0, 0.5)
-    DiscordLabel.Position = UDim2.new(0.3, 0, 0.5, 0)
-    DiscordLabel.Size = UDim2.new(0, 76, 0, 14)
-    DiscordLabel.TextXAlignment = Enum.TextXAlignment.Left
-    DiscordLabel.ZIndex = 6
-    DiscordLabel.Parent = DiscordBtn
-    DiscordBtn.MouseEnter:Connect(function()
-        TweenService:Create(DiscordBtn, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {
-            BackgroundColor3 = Color3.fromRGB(110, 124, 255),
-            BackgroundTransparency = 0
+    task.spawn(function()
+    while BlueGradient and BlueGradient.Parent do
+        TweenService:Create(BlueGradient, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.3
         }):Play()
-    end)
-    DiscordBtn.MouseLeave:Connect(function()
-        TweenService:Create(DiscordBtn, TweenInfo.new(0.18, Enum.EasingStyle.Quad), {
-            BackgroundColor3 = Color3.fromRGB(88, 101, 242),
-            BackgroundTransparency = 0.1
+        TweenService:Create(LightOverlay, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.4
         }):Play()
-    end)
-    DiscordBtn.MouseButton1Click:Connect(function()
-        -- GANTI LINK DISCORD KAMU DI SINI
-        setclipboard("https://discord.gg/GANTIDISINI")
-        Library.SendNotification({
-            title = "Discord",
-            text = "Link Discord berhasil dicopy ke clipboard!"
-        })
-    end)
+        task.wait(2)
 
+        TweenService:Create(BlueGradient, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.55
+        }):Play()
+        TweenService:Create(LightOverlay, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.65
+        }):Play()
+        task.wait(2)
+    end
+end)
+
+
+
+    
     local Divider = Instance.new('Frame')
     Divider.Name = 'Divider'
     Divider.BackgroundTransparency = 0.5
@@ -833,8 +897,8 @@ function Library:create_ui()
     Divider.BorderColor3 = Color3.fromRGB(0, 0, 0)
     Divider.Size = UDim2.new(0, 1, 0, 479)
     Divider.BorderSizePixel = 0
-    Divider.BackgroundColor3 = Color3.fromRGB(40, 80, 180)
-    Divider.BackgroundTransparency = 0.2
+    -- WARNA DISAMAKAN: rgb(50,80,160)
+    Divider.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
     Divider.Parent = Handler
     
     local Sections = Instance.new('Folder')
@@ -980,8 +1044,7 @@ function Library:create_ui()
                     }):Play()    
 
                     TweenService:Create(object, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                        BackgroundTransparency = 0.55,
-                        BackgroundColor3 = Color3.fromRGB(30, 60, 140)
+                        BackgroundTransparency = 0.5
                     }):Play()
 
                     TweenService:Create(object.TextLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -1006,8 +1069,7 @@ function Library:create_ui()
 
             if object.BackgroundTransparency ~= 1 then
                 TweenService:Create(object, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    BackgroundTransparency = 1,
-                    BackgroundColor3 = Color3.fromRGB(25, 30, 55)
+                    BackgroundTransparency = 1
                 }):Play()
                 
                 TweenService:Create(object.TextLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -1064,12 +1126,13 @@ function Library:create_ui()
         Tab.Size = UDim2.new(0, 129, 0, 38)
         Tab.BorderSizePixel = 0
         Tab.TextSize = 14
-        Tab.BackgroundColor3 = Color3.fromRGB(18, 22, 45)
+        -- WARNA DISAMAKAN: rgb(25,30,55)
+        Tab.BackgroundColor3 = Color3.fromRGB(25, 30, 55)
         Tab.Parent = Tabs
         Tab.LayoutOrder = self._tab
         
         local UICorner = Instance.new('UICorner')
-        UICorner.CornerRadius = UDim.new(0, 7)
+        UICorner.CornerRadius = UDim.new(0, 5)
         UICorner.Parent = Tab
         
         local TextLabel = Instance.new('TextLabel')
@@ -1196,35 +1259,27 @@ function Library:create_ui()
             local Module = Instance.new('Frame')
             Module.ClipsDescendants = true
             Module.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            Module.BackgroundTransparency = 0.0
+            Module.BackgroundTransparency = 0.5
             Module.Position = UDim2.new(0.004115226212888956, 0, 0, 0)
             Module.Name = 'Module'
             Module.Size = UDim2.new(0, 241, 0, 93)
             Module.BorderSizePixel = 0
-            Module.BackgroundColor3 = Color3.fromRGB(14, 17, 35)
+            -- WARNA DISAMAKAN: rgb(19,22,42)
+            Module.BackgroundColor3 = Color3.fromRGB(19, 22, 42)
             Module.Parent = settings.section
 
             local UIListLayout = Instance.new('UIListLayout')
             UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
             UIListLayout.Parent = Module
             
-            -- Inner gradient for depth
-            local ModuleGrad = Instance.new("UIGradient")
-            ModuleGrad.Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 25, 50)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 13, 28))
-            }
-            ModuleGrad.Rotation = 135
-            ModuleGrad.Parent = Module
-
             local UICorner = Instance.new('UICorner')
-            UICorner.CornerRadius = UDim.new(0, 8)
+            UICorner.CornerRadius = UDim.new(0, 5)
             UICorner.Parent = Module
             
             local UIStroke = Instance.new('UIStroke')
-            UIStroke.Color = Color3.fromRGB(55, 95, 200)
-            UIStroke.Transparency = 0.35
-            UIStroke.Thickness = 1
+            -- WARNA DISAMAKAN: rgb(50,80,160)
+            UIStroke.Color = Color3.fromRGB(50, 80, 160)
+            UIStroke.Transparency = 0.5
             UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
             UIStroke.Parent = Module
             
@@ -1241,22 +1296,6 @@ function Library:create_ui()
             Header.TextSize = 14
             Header.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Header.Parent = Module
-            -- Thin top accent line per card
-            local CardAccent = Instance.new("Frame")
-            CardAccent.Size = UDim2.new(0.6, 0, 0, 1)
-            CardAccent.Position = UDim2.new(0.2, 0, 0, 0)
-            CardAccent.BackgroundColor3 = Color3.fromRGB(80, 150, 255)
-            CardAccent.BackgroundTransparency = 0.4
-            CardAccent.BorderSizePixel = 0
-            CardAccent.ZIndex = 5
-            CardAccent.Parent = Header
-            local CardAccentGrad = Instance.new("UIGradient")
-            CardAccentGrad.Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 13, 28)),
-                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 185, 255)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 13, 28))
-            }
-            CardAccentGrad.Parent = CardAccent
             
             local Icon = Instance.new('ImageLabel')
             -- WARNA DISAMAKAN: rgb(100,185,255)
@@ -1283,7 +1322,7 @@ function Library:create_ui()
                 ModuleName.Text = settings.title or "Skibidi"
             else
                 ModuleName.RichText = true
-                ModuleName.Text = settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
+                ModuleName.Text = settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
             end;
             ModuleName.Name = 'ModuleName'
             ModuleName.Size = UDim2.new(0, 205, 0, 13)
@@ -1294,7 +1333,6 @@ function Library:create_ui()
             ModuleName.BorderSizePixel = 0
             ModuleName.BorderColor3 = Color3.fromRGB(0, 0, 0)
             ModuleName.TextSize = 13
-            ModuleName.TextStrokeTransparency = 0.8
             ModuleName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ModuleName.Parent = Header
             
@@ -1318,7 +1356,7 @@ function Library:create_ui()
             
             local Toggle = Instance.new('Frame')
             Toggle.Name = 'Toggle'
-            Toggle.BackgroundTransparency = 0.3
+            Toggle.BackgroundTransparency = 0.699999988079071
             Toggle.Position = UDim2.new(0.8199999928474426, 0, 0.7570000290870667, 0)
             Toggle.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Toggle.Size = UDim2.new(0, 25, 0, 12)
@@ -1349,12 +1387,13 @@ function Library:create_ui()
             
             local Keybind = Instance.new('Frame')
             Keybind.Name = 'Keybind'
-            Keybind.BackgroundTransparency = 0.15
+            Keybind.BackgroundTransparency = 0.699999988079071
             Keybind.Position = UDim2.new(0.15000000596046448, 0, 0.7350000143051147, 0)
             Keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Keybind.Size = UDim2.new(0, 33, 0, 15)
             Keybind.BorderSizePixel = 0
-            Keybind.BackgroundColor3 = Color3.fromRGB(25, 60, 140)
+            -- WARNA DISAMAKAN: rgb(100,185,255)
+            Keybind.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
             Keybind.Parent = Header
             
             local UICorner = Instance.new('UICorner')
@@ -1380,12 +1419,13 @@ function Library:create_ui()
             local Divider = Instance.new('Frame')
             Divider.BorderColor3 = Color3.fromRGB(0, 0, 0)
             Divider.AnchorPoint = Vector2.new(0.5, 0)
-            Divider.BackgroundTransparency = 0.6
+            Divider.BackgroundTransparency = 0.5
             Divider.Position = UDim2.new(0.5, 0, 0.6200000047683716, 0)
             Divider.Name = 'Divider'
-            Divider.Size = UDim2.new(0, 220, 0, 1)
+            Divider.Size = UDim2.new(0, 241, 0, 1)
             Divider.BorderSizePixel = 0
-            Divider.BackgroundColor3 = Color3.fromRGB(60, 110, 220)
+            -- WARNA DISAMAKAN: rgb(50,80,160)
+            Divider.BackgroundColor3 = Color3.fromRGB(50, 80, 160)
             Divider.Parent = Header
             
             local Divider = Instance.new('Frame')
@@ -1645,7 +1685,7 @@ function Library:create_ui()
                     Body.Text = settings.text or "Skibidi"
                 else
                     Body.RichText = true
-                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
+                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
                 end
                 
                 Body.Size = UDim2.new(1, -10, 0, 20)
@@ -2368,7 +2408,7 @@ end
                     Body.Text = settings.text or "Skibidi"
                 else
                     Body.RichText = true
-                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
+                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
                 end
             
                 Body.Size = UDim2.new(1, -10, 1, 0)
@@ -2401,7 +2441,7 @@ end
                         Body.Text = new_settings.text or "Skibidi"
                     else
                         Body.RichText = true
-                        Body.Text = new_settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
+                        Body.Text = new_settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
                     end
                 end;
             

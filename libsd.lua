@@ -529,158 +529,6 @@ function Library:create_ui()
     VicoX.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     VicoX.Parent = CoreGui
 
-    local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-
-local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
-
--- ScreenGui untuk intro
-local IntroGui = Instance.new("ScreenGui")
-IntroGui.IgnoreGuiInset = true
-IntroGui.ResetOnSpawn = false
-IntroGui.Parent = PlayerGui
-
--- FRAME FULL
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(1,0,1,0)
--- WARNA DISAMAKAN: intro background tetap hitam untuk kontras
-Frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-Frame.BorderSizePixel = 0
-Frame.Parent = IntroGui
-
--- CIRCLE MASK (untuk reveal)
-local Circle = Instance.new("ImageLabel")
-Circle.AnchorPoint = Vector2.new(0.5,0.5)
-Circle.Position = UDim2.new(0.5,0,0.5,0)
-Circle.Size = UDim2.new(0,0,0,0)
-Circle.Image = "rbxassetid://4695575676" -- lingkaran putih
-Circle.BackgroundTransparency = 1
--- WARNA DISAMAKAN: aksen biru rgb(100,185,255)
-Circle.ImageColor3 = Color3.fromRGB(100, 185, 255)
-Circle.Parent = Frame
-
--- LOGO
-local Logo = Instance.new("ImageLabel")
-Logo.AnchorPoint = Vector2.new(0.5,0.5)
-Logo.Position = UDim2.new(0.5,0,0.5,0)
-Logo.Size = UDim2.new(0,200,0,200)
-Logo.Image = "rbxassetid://11835491319"
-Logo.ImageTransparency = 1
-Logo.BackgroundTransparency = 1
-Logo.Parent = Frame
-
--- TEKS
-local Text = Instance.new("TextLabel")
-Text.AnchorPoint = Vector2.new(0.5,0.5)
-Text.Position = UDim2.new(0.5,0,0.8,0)
-Text.Size = UDim2.new(0,400,0,60)
-Text.Text = ""
-Text.Font = Enum.Font.GothamBold
-Text.TextSize = 48
--- WARNA DISAMAKAN: rgb(200,220,255) -> sesuai script 2
-Text.TextColor3 = Color3.fromRGB(200, 220, 255)
-Text.BackgroundTransparency = 1
-Text.TextTransparency = 1
-Text.Parent = Frame
-
--- EFFECT: SHINE
-local Shine = Instance.new("ImageLabel")
-Shine.AnchorPoint = Vector2.new(0.5,0.5)
-Shine.Size = UDim2.new(0,250,0,80)
-Shine.Position = UDim2.new(-0.5,0,0.5,0)
-Shine.Image = "rbxassetid://94198359"
-Shine.ImageTransparency = 0.5
-Shine.BackgroundTransparency = 1
-Shine.Rotation = -20
-Shine.Parent = Logo
-
--- PARTICLE BURST (fake dengan frames kecil)
-local function spawnBurst()
-	for i = 1,15 do
-		local Dot = Instance.new("Frame")
-		Dot.Size = UDim2.new(0, math.random(4,8), 0, math.random(4,8))
-		Dot.Position = UDim2.new(0.5,0,0.5,0)
-		Dot.AnchorPoint = Vector2.new(0.5,0.5)
-        -- WARNA DISAMAKAN: partikel biru
-		Dot.BackgroundColor3 = Color3.fromRGB(100, 185, 255)
-		Dot.BackgroundTransparency = 0
-		Dot.Parent = Frame
-		Dot.ZIndex = 999
-
-		local goal = {}
-		goal.Position = UDim2.new(0.5 + math.random(-200,200)/500, 0, 0.5 + math.random(-200,200)/500, 0)
-		goal.BackgroundTransparency = 1
-
-		local tw = TweenService:Create(Dot, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal)
-		tw:Play()
-		game.Debris:AddItem(Dot, 1)
-	end
-end
-
--- TYPING EFFECT
-local function typeText(target)
-	Text.Text = ""
-	Text.TextTransparency = 0
-	for i = 1, #target do
-		Text.Text = string.sub(target,1,i)
-		task.wait(0.05)
-	end
-end
-
--- ANIMASI
-task.spawn(function()
-	-- 1. Circle Reveal
-	TweenService:Create(Circle, TweenInfo.new(1.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-		Size = UDim2.new(2,0,2,0)
-	}):Play()
-	task.wait(0.6)
-
-	-- 2. Logo Fade In
-	TweenService:Create(Logo, TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-		ImageTransparency = 0
-	}):Play()
-
-	-- 3. Shine Sweep
-	task.wait(0.5)
-	TweenService:Create(Shine, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-		Position = UDim2.new(1.5,0,0.5,0)
-	}):Play()
-
-	-- 4. Typing Effect
-	task.wait(0.3)
-	typeText("VicoX")
-
-	-- 5. Burst + Parallax bounce
-	spawnBurst()
-	for i = 1,2 do
-		TweenService:Create(Logo, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-			Size = UDim2.new(0,210,0,210)
-		}):Play()
-		task.wait(0.6)
-		TweenService:Create(Logo, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-			Size = UDim2.new(0,200,0,200)
-		}):Play()
-		task.wait(0.6)
-	end
-
-	-- 6. Outro Fade
-	task.wait(0.5)
-	TweenService:Create(Frame, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
-		BackgroundTransparency = 1
-	}):Play()
-	TweenService:Create(Logo, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
-		ImageTransparency = 1
-	}):Play()
-	TweenService:Create(Text, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
-		TextTransparency = 1
-	}):Play()
-
-	task.wait(2.0)
-	IntroGui:Destroy()
-end)
-
-wait(1.0)
 
 
     
@@ -736,7 +584,7 @@ wait(1.0)
     -- WARNA DISAMAKAN: rgb(100,185,255) seperti script 2
     ClientName.TextColor3 = Color3.fromRGB(100, 185, 255)
     ClientName.TextTransparency = 0.2
-    ClientName.Text = 'VicoX'
+    ClientName.Text = 'GG HUB'
     ClientName.Name = 'ClientName'
     ClientName.Size = UDim2.new(0, 31, 0, 13)
     ClientName.AnchorPoint = Vector2.new(0, 0.5)
@@ -822,26 +670,6 @@ wait(1.0)
     BGrad.Parent = BlueGradient
 
 
-    local SnowFog = Instance.new("ImageLabel")
-    SnowFog.Name = "SnowFog"
-    SnowFog.Image = "rbxassetid://92809005659269"
-    -- WARNA DISAMAKAN: biru muda
-    SnowFog.ImageColor3 = Color3.fromRGB(150, 200, 255)
-    SnowFog.ImageTransparency = 0.55
-    SnowFog.BackgroundTransparency = 1
-    SnowFog.Size = UDim2.new(1.15, 0, 0.42, 0)
-    SnowFog.Position = UDim2.new(-0.075, 0, 0.58, 0)
-    SnowFog.ZIndex = -2
-    SnowFog.Parent = Container
-
-    task.spawn(function()
-        while SnowFog and SnowFog.Parent do
-            TweenService:Create(SnowFog, TweenInfo.new(25, Enum.EasingStyle.Linear), {Position = UDim2.new(0.075,0,0.58,0)}):Play()
-            task.wait(25)
-            TweenService:Create(SnowFog, TweenInfo.new(25, Enum.EasingStyle.Linear), {Position = UDim2.new(-0.075,0,0.58,0)}):Play()
-            task.wait(25)
-        end
-    end)
 
     local LightOverlay = Instance.new("Frame")
     LightOverlay.Name = "LightOverlay"
@@ -1346,7 +1174,7 @@ end)
                 ModuleName.Text = settings.title or "Skibidi"
             else
                 ModuleName.RichText = true
-                ModuleName.Text = settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
+                ModuleName.Text = settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
             end;
             ModuleName.Name = 'ModuleName'
             ModuleName.Size = UDim2.new(0, 205, 0, 13)
@@ -1709,7 +1537,7 @@ end)
                     Body.Text = settings.text or "Skibidi"
                 else
                     Body.RichText = true
-                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
+                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
                 end
                 
                 Body.Size = UDim2.new(1, -10, 0, 20)
@@ -2432,7 +2260,7 @@ end
                     Body.Text = settings.text or "Skibidi"
                 else
                     Body.RichText = true
-                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
+                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
                 end
             
                 Body.Size = UDim2.new(1, -10, 1, 0)
@@ -2465,7 +2293,7 @@ end
                         Body.Text = new_settings.text or "Skibidi"
                     else
                         Body.RichText = true
-                        Body.Text = new_settings.richtext or "<font color='rgb(255,0,0)'>VicoX</font> user"
+                        Body.Text = new_settings.richtext or "<font color='rgb(255,0,0)'>GG HUB</font> user"
                     end
                 end;
             

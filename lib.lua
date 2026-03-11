@@ -470,7 +470,7 @@ function Library.SendNotification(settings)
     IconBgCorner.Parent = IconBg
 
     local NotifIcon = Instance.new("ImageLabel")
-    NotifIcon.Image = settings.icon or "rbxassetid://112538196670712"
+    NotifIcon.Image = settings.icon or "rbxassetid://10653372143"
     NotifIcon.Size = UDim2.new(0, 18, 0, 18)
     NotifIcon.AnchorPoint = Vector2.new(0.5, 0.5)
     NotifIcon.Position = UDim2.new(0.5, 0, 0.5, 0)

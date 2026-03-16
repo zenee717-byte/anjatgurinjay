@@ -1,51 +1,58 @@
 -- ════════════════════════════════════════════════════════════════
--- MODERN UI LIBRARY v2.0 - Professional & Clean
--- Minimal design, smooth animations, no RGB spam
+-- MODERN UI LIBRARY v2.1 - FIXED & STABLE
+-- Professional, Clean, Error-handled
 -- ════════════════════════════════════════════════════════════════
 
 local Library = {}
 Library.__index = Library
 
 -- ════════════════════════════════════════════════════════════════
--- SERVICES
+-- SAFE SERVICE LOADING
 -- ════════════════════════════════════════════════════════════════
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
+local function GetService(name)
+    local success, service = pcall(function()
+        return game:GetService(name)
+    end)
+    return success and service or nil
+end
+
+local TweenService = GetService("TweenService")
+local UserInputService = GetService("UserInputService")
+local RunService = GetService("RunService")
+local Players = GetService("Players")
+local CoreGui = GetService("CoreGui") or GetService("StarterGui")
+local HttpService = GetService("HttpService")
+
+if not TweenService or not UserInputService or not Players then
+    error("Critical services not available")
+    return nil
+end
 
 local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
+local Mouse = Player and Player:GetMouse()
 
 -- ════════════════════════════════════════════════════════════════
 -- THEME - Clean & Modern
 -- ════════════════════════════════════════════════════════════════
 local Theme = {
-    -- Backgrounds
     Background = Color3.fromRGB(18, 18, 23),
     Surface = Color3.fromRGB(25, 25, 30),
     Card = Color3.fromRGB(30, 30, 37),
     Elevated = Color3.fromRGB(35, 35, 42),
     
-    -- Accents
-    Primary = Color3.fromRGB(99, 102, 241),      -- Indigo
+    Primary = Color3.fromRGB(99, 102, 241),
     PrimaryDark = Color3.fromRGB(79, 70, 229),
     Success = Color3.fromRGB(34, 197, 94),
     Warning = Color3.fromRGB(251, 191, 36),
     Error = Color3.fromRGB(239, 68, 68),
     
-    -- Text
     Text = Color3.fromRGB(240, 240, 245),
     TextSecondary = Color3.fromRGB(160, 160, 175),
     TextTertiary = Color3.fromRGB(100, 100, 115),
     
-    -- Borders
     Border = Color3.fromRGB(45, 45, 52),
     BorderLight = Color3.fromRGB(55, 55, 62),
     
-    -- Utility
     Shadow = Color3.fromRGB(0, 0, 0),
     Overlay = Color3.fromRGB(0, 0, 0),
 }
@@ -61,7 +68,13 @@ local Animations = {
 }
 
 local function Tween(instance, info, properties)
-    TweenService:Create(instance, info, properties):Play()
+    if not instance or not instance.Parent then return end
+    local success, err = pcall(function()
+        TweenService:Create(instance, info, properties):Play()
+    end)
+    if not success then
+        warn("Tween error:", err)
+    end
 end
 
 -- ════════════════════════════════════════════════════════════════
@@ -93,23 +106,6 @@ local function AddPadding(parent, all)
     return padding
 end
 
-local function CreateShadow(parent, size, transparency)
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, size * 2, 1, size * 2)
-    shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://6014261993"
-    shadow.ImageColor3 = Theme.Shadow
-    shadow.ImageTransparency = transparency or 0.7
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(49, 49, 450, 450)
-    shadow.ZIndex = 0
-    shadow.Parent = parent
-    return shadow
-end
-
 -- ════════════════════════════════════════════════════════════════
 -- LIBRARY CREATION
 -- ════════════════════════════════════════════════════════════════
@@ -122,9 +118,10 @@ function Library:New(config)
     self.Theme = config.Theme or "Dark"
     
     -- Cleanup old instances
-    if CoreGui:FindFirstChild("ModernUI") then
-        CoreGui:FindFirstChild("ModernUI"):Destroy()
-    end
+    pcall(function()
+        local old = CoreGui:FindFirstChild("ModernUI")
+        if old then old:Destroy() end
+    end)
     
     -- Create ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
@@ -146,7 +143,6 @@ function Library:New(config)
     
     AddCorner(self.Main, 12)
     AddStroke(self.Main, Theme.BorderLight, 1)
-    CreateShadow(self.Main, 20, 0.5)
     
     self.Tabs = {}
     self.CurrentTab = nil
@@ -171,7 +167,6 @@ function Library:CreateTopbar()
     Topbar.BorderSizePixel = 0
     Topbar.Parent = self.Main
     
-    -- Title
     local Title = Instance.new("TextLabel")
     Title.Name = "Title"
     Title.Size = UDim2.new(0, 200, 1, 0)
@@ -184,7 +179,6 @@ function Library:CreateTopbar()
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = Topbar
     
-    -- Close Button
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Name = "Close"
     CloseBtn.Size = UDim2.fromOffset(36, 36)
@@ -195,6 +189,7 @@ function Library:CreateTopbar()
     CloseBtn.Font = Enum.Font.GothamBold
     CloseBtn.TextSize = 20
     CloseBtn.TextColor3 = Theme.TextSecondary
+    CloseBtn.AutoButtonColor = false
     CloseBtn.Parent = Topbar
     
     AddCorner(CloseBtn, 8)
@@ -215,7 +210,6 @@ function Library:CreateTopbar()
         self.ScreenGui:Destroy()
     end)
     
-    -- Bottom Border
     local Border = Instance.new("Frame")
     Border.Size = UDim2.new(1, 0, 0, 1)
     Border.Position = UDim2.new(0, 0, 1, 0)
@@ -238,7 +232,6 @@ function Library:CreateSidebar()
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = self.Main
     
-    -- Tabs Container
     local TabsContainer = Instance.new("ScrollingFrame")
     TabsContainer.Name = "TabsContainer"
     TabsContainer.Size = UDim2.new(1, -16, 1, -16)
@@ -256,7 +249,6 @@ function Library:CreateSidebar()
     ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     ListLayout.Parent = TabsContainer
     
-    -- Right Border
     local Border = Instance.new("Frame")
     Border.Size = UDim2.new(0, 1, 1, 0)
     Border.Position = UDim2.new(1, 0, 0, 0)
@@ -351,7 +343,6 @@ function Library:CreateTab(config)
     Tab.Sections = {Left = nil, Right = nil}
     Tab.Active = false
     
-    -- Tab Button
     local TabButton = Instance.new("TextButton")
     TabButton.Name = tabName
     TabButton.Size = UDim2.new(1, 0, 0, 40)
@@ -363,7 +354,6 @@ function Library:CreateTab(config)
     
     AddCorner(TabButton, 8)
     
-    -- Icon
     local Icon = Instance.new("TextLabel")
     Icon.Size = UDim2.fromOffset(24, 24)
     Icon.Position = UDim2.fromOffset(12, 8)
@@ -374,7 +364,6 @@ function Library:CreateTab(config)
     Icon.TextColor3 = Theme.TextSecondary
     Icon.Parent = TabButton
     
-    -- Label
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(1, -48, 1, 0)
     Label.Position = UDim2.fromOffset(44, 0)
@@ -386,7 +375,6 @@ function Library:CreateTab(config)
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = TabButton
     
-    -- Indicator
     local Indicator = Instance.new("Frame")
     Indicator.Size = UDim2.fromOffset(3, 0)
     Indicator.Position = UDim2.new(0, 0, 0.5, 0)
@@ -397,7 +385,6 @@ function Library:CreateTab(config)
     
     AddCorner(Indicator, 2)
     
-    -- Tab Content
     local TabContent = Instance.new("Frame")
     TabContent.Name = tabName .. "Content"
     TabContent.Size = UDim2.new(1, -32, 1, -16)
@@ -406,7 +393,6 @@ function Library:CreateTab(config)
     TabContent.Visible = false
     TabContent.Parent = self.Content
     
-    -- Left Section
     local LeftSection = Instance.new("ScrollingFrame")
     LeftSection.Name = "Left"
     LeftSection.Size = UDim2.new(0.5, -8, 1, 0)
@@ -424,7 +410,6 @@ function Library:CreateTab(config)
     LeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
     LeftLayout.Parent = LeftSection
     
-    -- Right Section
     local RightSection = Instance.new("ScrollingFrame")
     RightSection.Name = "Right"
     RightSection.Size = UDim2.new(0.5, -8, 1, 0)
@@ -446,7 +431,6 @@ function Library:CreateTab(config)
     Tab.Sections.Right = RightSection
     Tab.Content = TabContent
     
-    -- Activation
     function Tab:Activate()
         for _, tab in pairs(self.Parent.Tabs) do
             if tab ~= self then
@@ -497,7 +481,6 @@ function Library:CreateTab(config)
         self.CurrentTab = Tab
     end
     
-    -- Component creators
     Tab.CreateSection = function(_, cfg) return self:CreateSection(Tab, cfg) end
     Tab.CreateToggle = function(_, cfg) return self:CreateToggle(Tab, cfg) end
     Tab.CreateButton = function(_, cfg) return self:CreateButton(Tab, cfg) end
@@ -525,7 +508,6 @@ function Library:CreateSection(tab, config)
     Section.AutomaticSize = Enum.AutomaticSize.Y
     Section.Parent = parent
     
-    -- Title
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0, 24)
     Title.BackgroundTransparency = 1
@@ -536,7 +518,6 @@ function Library:CreateSection(tab, config)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = Section
     
-    -- Divider
     local Divider = Instance.new("Frame")
     Divider.Size = UDim2.new(1, 0, 0, 1)
     Divider.Position = UDim2.new(0, 0, 0, 28)
@@ -544,7 +525,6 @@ function Library:CreateSection(tab, config)
     Divider.BorderSizePixel = 0
     Divider.Parent = Section
     
-    -- Container for components
     local Container = Instance.new("Frame")
     Container.Name = "Container"
     Container.Size = UDim2.new(1, 0, 0, 0)
@@ -582,7 +562,6 @@ function Library:CreateToggle(tab, config)
     
     AddCorner(ToggleFrame, 8)
     
-    -- Label
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(1, -52, 1, 0)
     Label.Position = UDim2.fromOffset(12, 0)
@@ -594,13 +573,13 @@ function Library:CreateToggle(tab, config)
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = ToggleFrame
     
-    -- Toggle Switch
     local Switch = Instance.new("TextButton")
     Switch.Size = UDim2.fromOffset(40, 20)
     Switch.Position = UDim2.new(1, -46, 0.5, 0)
     Switch.AnchorPoint = Vector2.new(0, 0.5)
     Switch.BackgroundColor3 = Theme.Elevated
     Switch.Text = ""
+    Switch.AutoButtonColor = false
     Switch.Parent = ToggleFrame
     
     AddCorner(Switch, 10)
@@ -631,7 +610,7 @@ function Library:CreateToggle(tab, config)
             })
         end
         
-        self.Callback(value)
+        pcall(function() self.Callback(value) end)
     end
     
     Switch.MouseButton1Click:Connect(function()
@@ -682,7 +661,7 @@ function Library:CreateButton(tab, config)
         Tween(ButtonFrame, Animations.Fast, {BackgroundColor3 = Theme.Primary})
         
         if config.Callback then
-            config.Callback()
+            pcall(function() config.Callback() end)
         end
     end)
     
@@ -719,7 +698,6 @@ function Library:CreateSlider(tab, config)
     
     AddCorner(SliderFrame, 8)
     
-    -- Label
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(0.7, 0, 0, 20)
     Label.Position = UDim2.fromOffset(12, 8)
@@ -731,7 +709,6 @@ function Library:CreateSlider(tab, config)
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = SliderFrame
     
-    -- Value Label
     local ValueLabel = Instance.new("TextLabel")
     ValueLabel.Size = UDim2.new(0.3, -12, 0, 20)
     ValueLabel.Position = UDim2.new(0.7, 0, 0, 8)
@@ -743,7 +720,6 @@ function Library:CreateSlider(tab, config)
     ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
     ValueLabel.Parent = SliderFrame
     
-    -- Slider Bar
     local Bar = Instance.new("Frame")
     Bar.Size = UDim2.new(1, -24, 0, 4)
     Bar.Position = UDim2.new(0.5, 0, 1, -14)
@@ -772,13 +748,12 @@ function Library:CreateSlider(tab, config)
         Tween(Fill, Animations.Fast, {Size = UDim2.new(percent, 0, 1, 0)})
         ValueLabel.Text = tostring(math.floor(value))
         
-        self.Callback(value)
+        pcall(function() self.Callback(value) end)
     end
     
     local function Update(input)
-        local pos = (input.Position.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X
-        pos = math.clamp(pos, 0, 1)
-        local value = self.Min + (self.Max - self.Min) * pos
+        local pos = math.clamp((input.Position.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
+        local value = Slider.Min + (Slider.Max - Slider.Min) * pos
         Slider:SetValue(value)
     end
     
@@ -805,6 +780,7 @@ function Library:CreateSlider(tab, config)
     
     return Slider
 end
+
 
 -- ════════════════════════════════════════════════════════════════
 -- DROPDOWN
@@ -833,6 +809,7 @@ function Library:CreateDropdown(tab, config)
     Header.Size = UDim2.new(1, 0, 0, 36)
     Header.BackgroundTransparency = 1
     Header.Text = ""
+    Header.AutoButtonColor = false
     Header.Parent = DropdownFrame
     
     local Label = Instance.new("TextLabel")
@@ -904,10 +881,7 @@ function Library:CreateDropdown(tab, config)
         layout.SortOrder = Enum.SortOrder.LayoutOrder
         layout.Parent = OptionsList
         
-        Instance.new("UIPadding", OptionsList).PaddingTop = UDim.new(0, 4)
-        Instance.new("UIPadding", OptionsList).PaddingBottom = UDim.new(0, 4)
-        Instance.new("UIPadding", OptionsList).PaddingLeft = UDim.new(0, 4)
-        Instance.new("UIPadding", OptionsList).PaddingRight = UDim.new(0, 4)
+        AddPadding(OptionsList, 4)
         
         for _, option in ipairs(self.Options) do
             local OptionButton = Instance.new("TextButton")
@@ -946,7 +920,7 @@ function Library:CreateDropdown(tab, config)
         self.Value = value
         ValueLabel.Text = value
         self:Refresh()
-        self.Callback(value)
+        pcall(function() self.Callback(value) end)
     end
     
     function Dropdown:Toggle()
@@ -983,7 +957,6 @@ function Library:CreateDropdown(tab, config)
     
     return Dropdown
 end
-
 
 -- ════════════════════════════════════════════════════════════════
 -- TEXTBOX
@@ -1039,7 +1012,7 @@ function Library:CreateTextbox(tab, config)
     Input.FocusLost:Connect(function()
         Tween(Input, Animations.Fast, {BackgroundColor3 = Theme.Elevated})
         Textbox.Value = Input.Text
-        Textbox.Callback(Input.Text)
+        pcall(function() Textbox.Callback(Input.Text) end)
     end)
     
     function Textbox:SetValue(value)
@@ -1156,6 +1129,7 @@ function Library:Notify(config)
     CloseBtn.Font = Enum.Font.GothamBold
     CloseBtn.TextSize = 16
     CloseBtn.TextColor3 = Theme.TextSecondary
+    CloseBtn.AutoButtonColor = false
     CloseBtn.Parent = Notification
     
     CloseBtn.MouseButton1Click:Connect(function()
@@ -1164,10 +1138,8 @@ function Library:Notify(config)
         Notification:Destroy()
     end)
     
-    -- Animate in
     Tween(Notification, Animations.Medium, {Size = UDim2.new(1, 0, 0, Message.AbsoluteSize.Y + 44)})
     
-    -- Auto close
     local duration = config.Duration or 5
     task.delay(duration, function()
         if Notification and Notification.Parent then

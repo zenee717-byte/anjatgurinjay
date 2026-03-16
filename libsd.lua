@@ -165,6 +165,42 @@ local function accGrad(p)
 end
 
 -- ============================================================
+-- RGB SYSTEM — cycles all accent colors
+-- ============================================================
+local RGB={hue=0, bg_list={}, stroke_list={}, grad_list={}, img_list={}}
+
+-- register helpers
+local function rgbBg(obj)    table.insert(RGB.bg_list,    obj) end
+local function rgbStroke(obj)table.insert(RGB.stroke_list,obj) end
+local function rgbImg(obj)   table.insert(RGB.img_list,   obj) end
+
+task.spawn(function()
+    while true do
+        task.wait(0.04)
+        RGB.hue=(RGB.hue+0.0025)%1
+        local c1=Color3.fromHSV(RGB.hue,            0.85, 1)
+        local c2=Color3.fromHSV((RGB.hue+0.18)%1,   0.85, 1)
+        local c3=Color3.fromHSV((RGB.hue+0.36)%1,   0.75, 1)
+        C.acc=c1; C.acc2=c2
+        for _,o in RGB.bg_list     do if o and o.Parent then o.BackgroundColor3=c1 end end
+        for _,o in RGB.stroke_list do if o and o.Parent then o.Color=c1           end end
+        for _,o in RGB.img_list    do if o and o.Parent then o.ImageColor3=c1     end end
+        -- update all UIGradients that represent acc→acc2
+        for _,o in RGB.grad_list   do
+            if o and o.Parent then
+                o.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,c1),ColorSequenceKeypoint.new(1,c2)}
+            end
+        end
+    end
+end)
+
+local function accGradRGB(p)
+    local g=Instance.new("UIGradient")
+    g.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,C.acc),ColorSequenceKeypoint.new(1,C.acc2)}
+    g.Rotation=90; g.Parent=p; table.insert(RGB.grad_list,g); return g
+end
+
+-- ============================================================
 -- NOTIFICATION SYSTEM
 -- ============================================================
 local NGui=Instance.new("ScreenGui"); NGui.Name="RVNotifs"; NGui.ResetOnSpawn=false
@@ -203,15 +239,15 @@ function Library.SendNotification(s)
     -- accent bar
     local Bar=Instance.new("Frame"); Bar.Size=UDim2.new(0,3,0.6,0); Bar.AnchorPoint=Vector2.new(0,0.5)
     Bar.Position=UDim2.new(0,0,0.5,0); Bar.BackgroundColor3=C.acc; Bar.BorderSizePixel=0; Bar.Parent=Card
-    corner(Bar,UDim.new(1,0)); accGrad(Bar)
+    corner(Bar,UDim.new(1,0)); accGradRGB(Bar); rgbBg(Bar)
 
     -- icon
     local IB=Instance.new("Frame"); IB.Size=UDim2.fromOffset(28,28); IB.AnchorPoint=Vector2.new(0,0.5)
     IB.Position=UDim2.new(0,12,0.5,0); IB.BackgroundColor3=C.acc; IB.BackgroundTransparency=0.8
-    IB.BorderSizePixel=0; IB.ZIndex=2; IB.Parent=Card; corner(IB,UDim.new(1,0))
+    IB.BorderSizePixel=0; IB.ZIndex=2; IB.Parent=Card; corner(IB,UDim.new(1,0)); rgbBg(IB)
     local NI=Instance.new("ImageLabel"); NI.Image=s.icon or "rbxassetid://10653372143"
     NI.Size=UDim2.fromOffset(14,14); NI.AnchorPoint=Vector2.new(0.5,0.5); NI.Position=UDim2.new(0.5,0,0.5,0)
-    NI.BackgroundTransparency=1; NI.ImageColor3=C.acc; NI.ZIndex=3; NI.Parent=IB
+    NI.BackgroundTransparency=1; NI.ImageColor3=C.acc; NI.ZIndex=3; NI.Parent=IB; rgbImg(NI)
 
     local NT=Instance.new("TextLabel"); NT.Text=s.title or "Notice"
     NT.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
@@ -230,7 +266,7 @@ function Library.SendNotification(s)
     PBg.Position=UDim2.new(0.5,0,1,-4); PBg.BackgroundColor3=C.bdr; PBg.BorderSizePixel=0; PBg.ZIndex=2; PBg.Parent=Card
     corner(PBg,UDim.new(1,0))
     local PF=Instance.new("Frame"); PF.Size=UDim2.new(1,0,1,0); PF.BackgroundColor3=C.acc
-    PF.BorderSizePixel=0; PF.ZIndex=3; PF.Parent=PBg; corner(PF,UDim.new(1,0)); accGrad(PF)
+    PF.BorderSizePixel=0; PF.ZIndex=3; PF.Parent=PBg; corner(PF,UDim.new(1,0)); accGradRGB(PF); rgbBg(PF)
 
     task.spawn(function()
         tw(W,TweenInfo.new(0.38,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),{Position=UDim2.new(0,0,0,0)})
@@ -278,48 +314,34 @@ function Library:create_ui()
     Con.Size=UDim2.fromOffset(0,0); Con.Position=UDim2.new(0.5,0,0.5,0)
     Con.AnchorPoint=Vector2.new(0.5,0.5); Con.BackgroundColor3=C.bg
     Con.BorderSizePixel=0; Con.ClipsDescendants=true; Con.Active=true; Con.Parent=SG
-    corner(Con,UDim.new(0,8)); stroke(Con,C.bdr,1)
+    corner(Con,UDim.new(0,8))
+    local ConStr=stroke(Con,C.bdr,1); rgbStroke(ConStr)
 
     local Han=Instance.new("Frame"); Han.Name="Handler"
     Han.Size=UDim2.fromOffset(720,460); Han.BackgroundTransparency=1; Han.Parent=Con
 
     -- ═══════════════════════ TOP BAR ═══════════════════════
     local TB=Instance.new("Frame"); TB.Name="TopBar"
-    TB.Size=UDim2.fromOffset(720,46); TB.BackgroundColor3=C.surf; TB.BorderSizePixel=0; TB.Parent=Han
+    TB.Size=UDim2.new(1,0,0,46); TB.BackgroundColor3=C.surf; TB.BorderSizePixel=0; TB.Parent=Han
     local TBBot=Instance.new("Frame"); TBBot.Size=UDim2.new(1,0,0,1); TBBot.AnchorPoint=Vector2.new(0,1)
     TBBot.Position=UDim2.new(0,0,1,0); TBBot.BackgroundColor3=C.bdr; TBBot.BorderSizePixel=0; TBBot.Parent=TB
 
-    -- Diamond logo
+    -- Diamond logo (RGB)
     local LD=Instance.new("Frame"); LD.Size=UDim2.fromOffset(18,18); LD.AnchorPoint=Vector2.new(0,0.5)
     LD.Position=UDim2.new(0,14,0.5,0); LD.Rotation=45; LD.BackgroundColor3=C.acc; LD.BorderSizePixel=0; LD.Parent=TB
-    corner(LD,UDim.new(0,3))
+    corner(LD,UDim.new(0,3)); rgbBg(LD)
     local LI=Instance.new("Frame"); LI.Size=UDim2.fromOffset(8,8); LI.AnchorPoint=Vector2.new(0.5,0.5)
     LI.Position=UDim2.new(0.5,0,0.5,0); LI.BackgroundColor3=C.bg; LI.BorderSizePixel=0; LI.Parent=LD
     corner(LI,UDim.new(0,2))
-    task.spawn(function()
-        while LD and LD.Parent do
-            tw(LD,TweenInfo.new(1.4,Enum.EasingStyle.Sine),{BackgroundColor3=C.acc2}); task.wait(1.4)
-            tw(LD,TweenInfo.new(1.4,Enum.EasingStyle.Sine),{BackgroundColor3=C.acc}); task.wait(1.4)
-        end
-    end)
 
-    -- Title
+    -- Title (RGB gradient)
     local TL=Instance.new("TextLabel"); TL.Text="REVERCES"
     TL.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
     TL.TextSize=14; TL.TextColor3=C.txt; TL.BackgroundTransparency=1
     TL.Size=UDim2.fromOffset(135,20); TL.AnchorPoint=Vector2.new(0,0.5); TL.Position=UDim2.new(0,42,0.5,0)
     TL.TextXAlignment=Enum.TextXAlignment.Left; TL.Parent=TB
-    local TG=Instance.new("UIGradient"); TG.Color=ColorSequence.new{
-        ColorSequenceKeypoint.new(0,C.txt), ColorSequenceKeypoint.new(0.55,Color3.fromRGB(255,185,195)),
-        ColorSequenceKeypoint.new(1,C.acc)}; TG.Parent=TL
-
-    -- Version badge
-    local VB=Instance.new("Frame"); VB.Size=UDim2.fromOffset(36,15); VB.AnchorPoint=Vector2.new(0,0.5)
-    VB.Position=UDim2.new(0,182,0.5,0); VB.BackgroundColor3=C.acc; VB.BackgroundTransparency=0.85
-    VB.BorderSizePixel=0; VB.Parent=TB; corner(VB,UDim.new(1,0)); stroke(VB,C.acc,1,0.5)
-    local VT=Instance.new("TextLabel"); VT.Text="v1.0"
-    VT.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    VT.TextSize=9; VT.TextColor3=C.acc; VT.BackgroundTransparency=1; VT.Size=UDim2.new(1,0,1,0); VT.Parent=VB
+    local TG=Instance.new("UIGradient"); table.insert(RGB.grad_list,TG)
+    TG.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,C.txt),ColorSequenceKeypoint.new(0.55,Color3.fromRGB(255,185,195)),ColorSequenceKeypoint.new(1,C.acc)}; TG.Parent=TL
 
     -- Discord button
     local DB=Instance.new("TextButton"); DB.Size=UDim2.fromOffset(88,26); DB.AnchorPoint=Vector2.new(1,0.5)
@@ -354,7 +376,7 @@ function Library:create_ui()
 
     -- ═══════════════════════ TAB BAR ═══════════════════════
     local TBF=Instance.new("Frame"); TBF.Name="TabBarFrame"
-    TBF.Size=UDim2.fromOffset(720,36); TBF.Position=UDim2.fromOffset(0,46)
+    TBF.Size=UDim2.new(1,0,0,36); TBF.Position=UDim2.fromOffset(0,46)
     TBF.BackgroundColor3=C.surf; TBF.BorderSizePixel=0; TBF.Parent=Han
     local TBFBot=Instance.new("Frame"); TBFBot.Size=UDim2.new(1,0,0,1); TBFBot.AnchorPoint=Vector2.new(0,1)
     TBFBot.Position=UDim2.new(0,0,1,0); TBFBot.BackgroundColor3=C.bdr; TBFBot.BorderSizePixel=0; TBFBot.Parent=TBF
@@ -368,11 +390,11 @@ function Library:create_ui()
     TbL.VerticalAlignment=Enum.VerticalAlignment.Center; TbL.SortOrder=Enum.SortOrder.LayoutOrder
     TbL.Padding=UDim.new(0,2)
 
-    -- sliding indicator
+    -- sliding indicator (RGB)
     local Ind=Instance.new("Frame"); Ind.Name="Indicator"
     Ind.Size=UDim2.fromOffset(50,2); Ind.AnchorPoint=Vector2.new(0,1)
     Ind.Position=UDim2.new(0,10,1,0); Ind.BackgroundColor3=C.acc; Ind.BorderSizePixel=0
-    Ind.ZIndex=3; Ind.Parent=TBF; corner(Ind,UDim.new(1,0)); accGrad(Ind)
+    Ind.ZIndex=3; Ind.Parent=TBF; corner(Ind,UDim.new(1,0)); accGradRGB(Ind); rgbBg(Ind)
 
     -- ═══════════════════════ CONTENT ═══════════════════════
     local CA=Instance.new("Frame"); CA.Name="ContentArea"
@@ -416,8 +438,12 @@ function Library:create_ui()
     end
     function self:UIVisiblity() SG.Enabled=not SG.Enabled end
     function self:change_visiblity(state)
-        if state then tw(Con,QL,{Size=UDim2.fromOffset(720,460)})
-        else tw(Con,QL,{Size=UDim2.fromOffset(220,46)}) end
+        if state then
+            tw(Con,QL,{Size=UDim2.fromOffset(720,460)})
+        else
+            -- minimize: shrink to just topbar height so button stays visible
+            tw(Con,QL,{Size=UDim2.fromOffset(720,46)})
+        end
     end
     function self:load()
         local ct={}
@@ -522,32 +548,34 @@ function Library:create_ui()
             Mod.Size=UDim2.fromOffset(330,80); Mod.BackgroundColor3=C.surf2
             Mod.BorderSizePixel=0; Mod.ClipsDescendants=true; Mod.Parent=cfg.section
             corner(Mod,UDim.new(0,6))
-            local ModStr=stroke(Mod,C.bdr,1)
+            local ModStr=stroke(Mod,C.bdr,1); rgbStroke(ModStr)
 
-            local ModL=Instance.new("UIListLayout",Mod); ModL.SortOrder=Enum.SortOrder.LayoutOrder
-
-            -- accent bar left edge
-            local Acc=Instance.new("Frame"); Acc.Size=UDim2.new(0,3,0.6,0); Acc.AnchorPoint=Vector2.new(0,0.5)
-            Acc.Position=UDim2.new(0,0,0.24,0); Acc.BackgroundColor3=C.acc; Acc.BorderSizePixel=0; Acc.Parent=Mod
-            corner(Acc,UDim.new(1,0)); accGrad(Acc)
+            -- NO UIListLayout in Mod — positions are absolute to avoid layout conflict
 
             local Hdr=Instance.new("TextButton"); Hdr.Name="Header"
-            Hdr.Size=UDim2.fromOffset(330,80); Hdr.BackgroundTransparency=1
-            Hdr.Text=""; Hdr.AutoButtonColor=false; Hdr.BorderSizePixel=0; Hdr.Parent=Mod
+            Hdr.Size=UDim2.fromOffset(330,80); Hdr.Position=UDim2.fromOffset(0,0)
+            Hdr.BackgroundTransparency=1; Hdr.Text=""; Hdr.AutoButtonColor=false
+            Hdr.BorderSizePixel=0; Hdr.Parent=Mod
 
-            -- icon bg circle
+            -- accent bar (inside Hdr, fixed pixel size, won't interfere with layout)
+            local Acc=Instance.new("Frame"); Acc.Size=UDim2.fromOffset(3,48)
+            Acc.AnchorPoint=Vector2.new(0,0.5); Acc.Position=UDim2.new(0,0,0.5,0)
+            Acc.BackgroundColor3=C.acc; Acc.BorderSizePixel=0; Acc.Parent=Hdr
+            corner(Acc,UDim.new(1,0)); accGradRGB(Acc); rgbBg(Acc)
+
+            -- icon bg circle (RGB)
             local IcBg=Instance.new("Frame"); IcBg.Size=UDim2.fromOffset(30,30); IcBg.AnchorPoint=Vector2.new(0,0.5)
-            IcBg.Position=UDim2.new(0,14,0.33,0); IcBg.BackgroundColor3=C.acc; IcBg.BackgroundTransparency=0.82
-            IcBg.BorderSizePixel=0; IcBg.Parent=Hdr; corner(IcBg,UDim.new(0,6))
+            IcBg.Position=UDim2.new(0,14,0.5,0); IcBg.BackgroundColor3=C.acc; IcBg.BackgroundTransparency=0.82
+            IcBg.BorderSizePixel=0; IcBg.Parent=Hdr; corner(IcBg,UDim.new(0,6)); rgbBg(IcBg)
             local MIco=Instance.new("ImageLabel"); MIco.Image="rbxassetid://79095934438045"
             MIco.Size=UDim2.fromOffset(15,15); MIco.AnchorPoint=Vector2.new(0.5,0.5); MIco.Position=UDim2.new(0.5,0,0.5,0)
-            MIco.BackgroundTransparency=1; MIco.ImageColor3=C.acc; MIco.Parent=IcBg
+            MIco.BackgroundTransparency=1; MIco.ImageColor3=C.acc; MIco.Parent=IcBg; rgbImg(MIco)
 
             local MN=Instance.new("TextLabel"); MN.Name="ModuleName"
             MN.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
             MN.TextColor3=C.txt; MN.TextTransparency=0; MN.TextSize=12
             MN.TextXAlignment=Enum.TextXAlignment.Left; MN.BackgroundTransparency=1
-            MN.Size=UDim2.fromOffset(210,14); MN.AnchorPoint=Vector2.new(0,0.5); MN.Position=UDim2.new(0,54,0.28,0)
+            MN.Size=UDim2.fromOffset(210,14); MN.AnchorPoint=Vector2.new(0,0); MN.Position=UDim2.new(0,54,0,16)
             if not cfg.rich then MN.Text=cfg.title or "Module"
             else MN.RichText=true; MN.Text=cfg.richtext or "Module" end; MN.Parent=Hdr
 
@@ -555,13 +583,13 @@ function Library:create_ui()
             Des.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
             Des.TextColor3=C.dim; Des.TextSize=10
             Des.TextXAlignment=Enum.TextXAlignment.Left; Des.BackgroundTransparency=1
-            Des.Size=UDim2.fromOffset(210,12); Des.AnchorPoint=Vector2.new(0,0.5); Des.Position=UDim2.new(0,54,0.50,0)
+            Des.Size=UDim2.fromOffset(210,12); Des.AnchorPoint=Vector2.new(0,0); Des.Position=UDim2.new(0,54,0,36)
             Des.Text=cfg.description or ""; Des.Parent=Hdr
 
-            -- toggle pill
+            -- toggle pill (RGB when active)
             local Tog=Instance.new("Frame"); Tog.Name="Toggle"
             Tog.Size=UDim2.fromOffset(28,14); Tog.AnchorPoint=Vector2.new(1,0.5)
-            Tog.Position=UDim2.new(1,-12,0.34,0); Tog.BackgroundColor3=C.bdr; Tog.BorderSizePixel=0; Tog.Parent=Hdr
+            Tog.Position=UDim2.new(1,-12,0.5,0); Tog.BackgroundColor3=C.bdr; Tog.BorderSizePixel=0; Tog.Parent=Hdr
             corner(Tog,UDim.new(1,0))
             local Cir=Instance.new("Frame"); Cir.Name="Circle"
             Cir.Size=UDim2.fromOffset(10,10); Cir.AnchorPoint=Vector2.new(0,0.5)
@@ -570,7 +598,7 @@ function Library:create_ui()
 
             -- keybind badge
             local KB=Instance.new("Frame"); KB.Name="Keybind"
-            KB.Size=UDim2.fromOffset(30,14); KB.AnchorPoint=Vector2.new(1,0.5); KB.Position=UDim2.new(1,-48,0.34,0)
+            KB.Size=UDim2.fromOffset(30,14); KB.AnchorPoint=Vector2.new(1,0.5); KB.Position=UDim2.new(1,-48,0.5,0)
             KB.BackgroundColor3=C.surf; KB.BorderSizePixel=0; KB.Parent=Hdr
             corner(KB,UDim.new(0,3)); stroke(KB,C.bdr,1)
             local KBL=Instance.new("TextLabel"); KBL.Text="None"
@@ -581,9 +609,10 @@ function Library:create_ui()
             local HDiv=Instance.new("Frame"); HDiv.Size=UDim2.new(1,-26,0,1); HDiv.AnchorPoint=Vector2.new(0.5,1)
             HDiv.Position=UDim2.new(0.5,0,1,0); HDiv.BackgroundColor3=C.bdr; HDiv.BorderSizePixel=0; HDiv.Parent=Hdr
 
-            -- options
+            -- options — absolute position below 80px header
             local Opts=Instance.new("Frame"); Opts.Name="Options"
-            Opts.Size=UDim2.fromOffset(330,0); Opts.BackgroundTransparency=1; Opts.BorderSizePixel=0; Opts.Parent=Mod
+            Opts.Size=UDim2.fromOffset(330,0); Opts.Position=UDim2.fromOffset(0,80)
+            Opts.BackgroundTransparency=1; Opts.BorderSizePixel=0; Opts.Parent=Mod
             local OP=Instance.new("UIPadding",Opts); OP.PaddingTop=UDim.new(0,8); OP.PaddingBottom=UDim.new(0,8)
             local OL=Instance.new("UIListLayout",Opts); OL.Padding=UDim.new(0,5)
             OL.HorizontalAlignment=Enum.HorizontalAlignment.Center; OL.SortOrder=Enum.SortOrder.LayoutOrder
@@ -593,12 +622,14 @@ function Library:create_ui()
                 self._state=st
                 if st then
                     tw(Mod,QL,{Size=UDim2.fromOffset(330,80+self._size+self._multiplier)})
+                    tw(Opts,QL,{Size=UDim2.fromOffset(330,self._size+self._multiplier)})
                     tw(Tog,QL,{BackgroundColor3=C.acc}); tw(Cir,QL,{BackgroundColor3=C.txt,Position=UDim2.new(1,-12,0.5,0)})
-                    tw(ModStr,QL,{Color=C.acc})
+                    ModStr.Color=C.acc
                 else
                     tw(Mod,QL,{Size=UDim2.fromOffset(330,80)})
+                    tw(Opts,QL,{Size=UDim2.fromOffset(330,0)})
                     tw(Tog,QL,{BackgroundColor3=C.bdr}); tw(Cir,QL,{BackgroundColor3=C.dim,Position=UDim2.new(0,2,0.5,0)})
-                    tw(ModStr,QL,{Color=C.bdr})
+                    ModStr.Color=C.bdr
                 end
                 Library._config._flags[cfg.flag]=self._state
                 Cfg:save(game.GameId,Library._config); cfg.callback(self._state)
@@ -669,7 +700,7 @@ function Library:create_ui()
                 P.AutomaticSize=Enum.AutomaticSize.Y; P.LayoutOrder=LOM; P.Parent=Opts
                 corner(P,UDim.new(0,4))
                 local PA=Instance.new("Frame"); PA.Size=UDim2.new(0,2,0.5,0); PA.AnchorPoint=Vector2.new(0,0.5)
-                PA.Position=UDim2.new(0,0,0.5,0); PA.BackgroundColor3=C.acc; PA.BorderSizePixel=0; PA.Parent=P; corner(PA,UDim.new(1,0))
+                PA.Position=UDim2.new(0,0,0.5,0); PA.BackgroundColor3=C.acc; PA.BorderSizePixel=0; PA.Parent=P; corner(PA,UDim.new(1,0)); rgbBg(PA)
                 local PT=Instance.new("TextLabel"); PT.Text=s.title or "Title"
                 PT.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
                 PT.TextSize=11; PT.TextColor3=C.txt; PT.BackgroundTransparency=1
@@ -976,7 +1007,7 @@ function Library:create_ui()
                 Box.Position=UDim2.new(1,-2,0.5,0); Box.BackgroundColor3=C.surf; Box.BackgroundTransparency=0.9
                 Box.BorderSizePixel=0; Box.Parent=Chk; corner(Box,UDim.new(0,3)); stroke(Box,C.bdr,1)
                 local Fill=Instance.new("Frame"); Fill.AnchorPoint=Vector2.new(0.5,0.5); Fill.Position=UDim2.new(0.5,0,0.5,0)
-                Fill.Size=UDim2.fromOffset(0,0); Fill.BackgroundColor3=C.acc; Fill.BorderSizePixel=0; Fill.Parent=Box; corner(Fill,UDim.new(0,2))
+                Fill.Size=UDim2.fromOffset(0,0); Fill.BackgroundColor3=C.acc; Fill.BorderSizePixel=0; Fill.Parent=Box; corner(Fill,UDim.new(0,2)); rgbBg(Fill)
                 function CM:change_state(st)
                     self._state=st
                     if st then tw(Box,QT,{BackgroundTransparency=0.7}); tw(Fill,QT,{Size=UDim2.fromOffset(8,8)})
@@ -1030,8 +1061,8 @@ function Library:create_ui()
                 end
                 if not s or not s.disableline then
                     local Div=Instance.new("Frame"); Div.Size=UDim2.new(1,0,0,1); Div.Position=UDim2.new(0,0,0.5,-1)
-                    Div.BackgroundColor3=C.acc; Div.BorderSizePixel=0; Div.ZIndex=2; Div.Parent=OF; corner(Div,UDim.new(0,1))
-                    local DG=Instance.new("UIGradient"); DG.Parent=Div
+                    Div.BackgroundColor3=C.acc; Div.BorderSizePixel=0; Div.ZIndex=2; Div.Parent=OF; corner(Div,UDim.new(0,1)); rgbBg(Div)
+                    local DG=Instance.new("UIGradient"); DG.Parent=Div; table.insert(RGB.grad_list,DG)
                     DG.Transparency=NumberSequence.new{NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(0.5,0),NumberSequenceKeypoint.new(1,1)}
                     DG.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,C.acc),ColorSequenceKeypoint.new(1,C.acc2)}
                 end
@@ -1061,12 +1092,16 @@ function Library:create_ui()
                 SVL.TextSize=10; SVL.TextColor3=C.acc; SVL.BackgroundTransparency=1
                 SVL.Size=UDim2.fromOffset(50,13); SVL.AnchorPoint=Vector2.new(1,0); SVL.Position=UDim2.new(1,0,0,0)
                 SVL.TextXAlignment=Enum.TextXAlignment.Right; SVL.Parent=Sld
+                -- RGB on slider value text
+                task.spawn(function()
+                    while SVL and SVL.Parent do task.wait(0.04); SVL.TextColor3=C.acc end
+                end)
                 local Drg=Instance.new("Frame"); Drg.Name="Drag"; Drg.AnchorPoint=Vector2.new(0.5,1)
                 Drg.Size=UDim2.fromOffset(308,4); Drg.Position=UDim2.new(0.5,0,1,0)
                 Drg.BackgroundColor3=C.bdr; Drg.BackgroundTransparency=0.4; Drg.BorderSizePixel=0; Drg.Parent=Sld; corner(Drg,UDim.new(1,0))
                 local Fil=Instance.new("Frame"); Fil.Name="Fill"; Fil.AnchorPoint=Vector2.new(0,0.5)
                 Fil.Size=UDim2.fromOffset(100,4); Fil.Position=UDim2.new(0,0,0.5,0)
-                Fil.BackgroundColor3=C.acc; Fil.BorderSizePixel=0; Fil.Parent=Drg; corner(Fil,UDim.new(1,0)); accGrad(Fil)
+                Fil.BackgroundColor3=C.acc; Fil.BorderSizePixel=0; Fil.Parent=Drg; corner(Fil,UDim.new(1,0)); accGradRGB(Fil); rgbBg(Fil)
                 local Knob=Instance.new("Frame"); Knob.Name="Circle"; Knob.AnchorPoint=Vector2.new(1,0.5)
                 Knob.Size=UDim2.fromOffset(8,8); Knob.Position=UDim2.new(1,0,0.5,0)
                 Knob.BackgroundColor3=Color3.new(1,1,1); Knob.BorderSizePixel=0; Knob.Parent=Fil; corner(Knob,UDim.new(1,0))
@@ -1177,14 +1212,14 @@ function Library:create_ui()
                     if self._state then
                         MM._multiplier+=self._size; CDS=self._size
                         tw(Mod,QL,{Size=UDim2.fromOffset(330,80+MM._size+MM._multiplier)})
-                        tw(Mod.Options,QL,{Size=UDim2.fromOffset(330,MM._size+MM._multiplier)})
+                        tw(Opts,QL,{Size=UDim2.fromOffset(330,MM._size+MM._multiplier)})
                         tw(DD,QL,{Size=UDim2.fromOffset(308,40+self._size)})
                         tw(DBox,QL,{Size=UDim2.fromOffset(308,22+self._size)})
                         tw(DAr,QL,{Rotation=180})
                     else
                         MM._multiplier-=self._size; CDS=0
                         tw(Mod,QL,{Size=UDim2.fromOffset(330,80+MM._size+MM._multiplier)})
-                        tw(Mod.Options,QL,{Size=UDim2.fromOffset(330,MM._size+MM._multiplier)})
+                        tw(Opts,QL,{Size=UDim2.fromOffset(330,MM._size+MM._multiplier)})
                         tw(DD,QL,{Size=UDim2.fromOffset(308,40)})
                         tw(DBox,QL,{Size=UDim2.fromOffset(308,22)})
                         tw(DAr,QL,{Rotation=0})

@@ -176,16 +176,14 @@ local function rgbImg(obj)   table.insert(RGB.img_list,   obj) end
 
 task.spawn(function()
     while true do
-        task.wait(0.04)
-        RGB.hue=(RGB.hue+0.0025)%1
-        local c1=Color3.fromHSV(RGB.hue,            0.85, 1)
-        local c2=Color3.fromHSV((RGB.hue+0.18)%1,   0.85, 1)
-        local c3=Color3.fromHSV((RGB.hue+0.36)%1,   0.75, 1)
+        task.wait(0.05)
+        RGB.hue=(RGB.hue+0.0012)%1  -- slow, elegant cycle
+        local c1=Color3.fromHSV(RGB.hue,            0.78, 1)
+        local c2=Color3.fromHSV((RGB.hue+0.14)%1,   0.72, 1)
         C.acc=c1; C.acc2=c2
         for _,o in RGB.bg_list     do if o and o.Parent then o.BackgroundColor3=c1 end end
         for _,o in RGB.stroke_list do if o and o.Parent then o.Color=c1           end end
         for _,o in RGB.img_list    do if o and o.Parent then o.ImageColor3=c1     end end
-        -- update all UIGradients that represent acc→acc2
         for _,o in RGB.grad_list   do
             if o and o.Parent then
                 o.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,c1),ColorSequenceKeypoint.new(1,c2)}
@@ -325,29 +323,62 @@ function Library:create_ui()
     TB.Size=UDim2.new(1,0,0,46); TB.BackgroundColor3=C.surf; TB.BorderSizePixel=0; TB.Parent=Han
     local TBBot=Instance.new("Frame"); TBBot.Size=UDim2.new(1,0,0,1); TBBot.AnchorPoint=Vector2.new(0,1)
     TBBot.Position=UDim2.new(0,0,1,0); TBBot.BackgroundColor3=C.bdr; TBBot.BorderSizePixel=0; TBBot.Parent=TB
+    -- subtle top accent line on topbar
+    local TBTop=Instance.new("Frame"); TBTop.Size=UDim2.new(1,0,0,1); TBTop.Position=UDim2.new(0,0,0,0)
+    TBTop.BackgroundColor3=C.acc; TBTop.BorderSizePixel=0; TBTop.Parent=TB; rgbBg(TBTop)
 
-    -- Diamond logo (RGB)
-    local LD=Instance.new("Frame"); LD.Size=UDim2.fromOffset(18,18); LD.AnchorPoint=Vector2.new(0,0.5)
-    LD.Position=UDim2.new(0,14,0.5,0); LD.Rotation=45; LD.BackgroundColor3=C.acc; LD.BorderSizePixel=0; LD.Parent=TB
+    -- ── Logo + Title pill (clickable = minimize toggle) ──
+    local LogoPill=Instance.new("TextButton"); LogoPill.Name="LogoPill"
+    LogoPill.Size=UDim2.fromOffset(172,30); LogoPill.AnchorPoint=Vector2.new(0,0.5)
+    LogoPill.Position=UDim2.new(0,8,0.5,0); LogoPill.BackgroundColor3=C.surf2
+    LogoPill.BackgroundTransparency=0.4; LogoPill.BorderSizePixel=0; LogoPill.Text=""
+    LogoPill.AutoButtonColor=false; LogoPill.Parent=TB
+    corner(LogoPill,UDim.new(0,7))
+    local LPStr=stroke(LogoPill,C.bdr,1,0.3)
+
+    -- Diamond logo inside pill
+    local LD=Instance.new("Frame"); LD.Size=UDim2.fromOffset(16,16); LD.AnchorPoint=Vector2.new(0,0.5)
+    LD.Position=UDim2.new(0,10,0.5,0); LD.Rotation=45; LD.BackgroundColor3=C.acc; LD.BorderSizePixel=0; LD.Parent=LogoPill
     corner(LD,UDim.new(0,3)); rgbBg(LD)
-    local LI=Instance.new("Frame"); LI.Size=UDim2.fromOffset(8,8); LI.AnchorPoint=Vector2.new(0.5,0.5)
-    LI.Position=UDim2.new(0.5,0,0.5,0); LI.BackgroundColor3=C.bg; LI.BorderSizePixel=0; LI.Parent=LD
+    local LI=Instance.new("Frame"); LI.Size=UDim2.fromOffset(7,7); LI.AnchorPoint=Vector2.new(0.5,0.5)
+    LI.Position=UDim2.new(0.5,0,0.5,0); LI.BackgroundColor3=C.surf2; LI.BorderSizePixel=0; LI.Parent=LD
     corner(LI,UDim.new(0,2))
 
-    -- Title (RGB gradient)
+    -- Title inside pill
     local TL=Instance.new("TextLabel"); TL.Text="REVERCES"
     TL.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    TL.TextSize=14; TL.TextColor3=C.txt; TL.BackgroundTransparency=1
-    TL.Size=UDim2.fromOffset(135,20); TL.AnchorPoint=Vector2.new(0,0.5); TL.Position=UDim2.new(0,42,0.5,0)
-    TL.TextXAlignment=Enum.TextXAlignment.Left; TL.Parent=TB
+    TL.TextSize=13; TL.TextColor3=C.txt; TL.BackgroundTransparency=1
+    TL.Size=UDim2.fromOffset(118,20); TL.AnchorPoint=Vector2.new(0,0.5); TL.Position=UDim2.new(0,34,0.5,0)
+    TL.TextXAlignment=Enum.TextXAlignment.Left; TL.Parent=LogoPill
     local TG=Instance.new("UIGradient"); table.insert(RGB.grad_list,TG)
-    TG.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,C.txt),ColorSequenceKeypoint.new(0.55,Color3.fromRGB(255,185,195)),ColorSequenceKeypoint.new(1,C.acc)}; TG.Parent=TL
+    TG.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,C.txt),ColorSequenceKeypoint.new(0.6,Color3.fromRGB(240,240,255)),ColorSequenceKeypoint.new(1,C.acc)}; TG.Parent=TL
 
-    -- Discord button
-    local DB=Instance.new("TextButton"); DB.Size=UDim2.fromOffset(88,26); DB.AnchorPoint=Vector2.new(1,0.5)
-    DB.Position=UDim2.new(1,-44,0.5,0); DB.BackgroundColor3=C.surf2; DB.BorderSizePixel=0
-    DB.Text=""; DB.AutoButtonColor=false; DB.Parent=TB; corner(DB,UDim.new(0,5))
-    local DStr=stroke(DB,C.bdr,1)
+    -- Chevron icon on pill (shows minimize state)
+    local ChevIco=Instance.new("ImageLabel"); ChevIco.Image="rbxassetid://84232453189324"
+    ChevIco.Size=UDim2.fromOffset(9,9); ChevIco.AnchorPoint=Vector2.new(1,0.5)
+    ChevIco.Position=UDim2.new(1,-8,0.5,0); ChevIco.BackgroundTransparency=1
+    ChevIco.ImageColor3=C.dim; ChevIco.ScaleType=Enum.ScaleType.Fit; ChevIco.Rotation=90
+    ChevIco.ZIndex=2; ChevIco.Parent=LogoPill
+
+    -- Hover effect on pill
+    LogoPill.MouseEnter:Connect(function()
+        tw(LogoPill,QT,{BackgroundTransparency=0.15}); tw(LPStr,QT,{Transparency=0})
+        tw(ChevIco,QT,{ImageColor3=C.acc})
+    end)
+    LogoPill.MouseLeave:Connect(function()
+        tw(LogoPill,QT,{BackgroundTransparency=0.4}); tw(LPStr,QT,{Transparency=0.3})
+        tw(ChevIco,QT,{ImageColor3=C.dim})
+    end)
+
+    -- ── Right side: Discord + separator ──
+    local RightGroup=Instance.new("Frame"); RightGroup.Size=UDim2.fromOffset(120,30)
+    RightGroup.AnchorPoint=Vector2.new(1,0.5); RightGroup.Position=UDim2.new(1,-10,0.5,0)
+    RightGroup.BackgroundTransparency=1; RightGroup.BorderSizePixel=0; RightGroup.Parent=TB
+
+    local DB=Instance.new("TextButton"); DB.Size=UDim2.fromOffset(88,26); DB.AnchorPoint=Vector2.new(0,0.5)
+    DB.Position=UDim2.new(0,0,0.5,0); DB.BackgroundColor3=C.surf2; DB.BorderSizePixel=0
+    DB.Text=""; DB.AutoButtonColor=false; DB.Parent=RightGroup; corner(DB,UDim.new(0,6))
+    local DStr=stroke(DB,C.bdr,1,0.4)
     local DIco=Instance.new("ImageLabel"); DIco.Image="rbxassetid://112538196670712"
     DIco.Size=UDim2.fromOffset(13,13); DIco.AnchorPoint=Vector2.new(0,0.5); DIco.Position=UDim2.new(0,8,0.5,0)
     DIco.BackgroundTransparency=1; DIco.ImageColor3=C.dim; DIco.ZIndex=2; DIco.Parent=DB
@@ -356,23 +387,24 @@ function Library:create_ui()
     DLb.TextSize=10; DLb.TextColor3=C.dim; DLb.BackgroundTransparency=1
     DLb.Size=UDim2.fromOffset(55,26); DLb.Position=UDim2.new(0,27,0,0); DLb.TextXAlignment=Enum.TextXAlignment.Left
     DLb.ZIndex=2; DLb.Parent=DB
-    DB.MouseEnter:Connect(function() tw(DB,QT,{BackgroundColor3=C.surf3}); tw(DStr,QT,{Transparency=0.4}); tw(DIco,QT,{ImageColor3=C.acc}); tw(DLb,QT,{TextColor3=C.txt}) end)
-    DB.MouseLeave:Connect(function() tw(DB,QT,{BackgroundColor3=C.surf2}); tw(DStr,QT,{Transparency=0}); tw(DIco,QT,{ImageColor3=C.dim}); tw(DLb,QT,{TextColor3=C.dim}) end)
+    DB.MouseEnter:Connect(function() tw(DB,QT,{BackgroundColor3=C.surf3}); tw(DStr,QT,{Transparency=0}); tw(DIco,QT,{ImageColor3=C.acc}); tw(DLb,QT,{TextColor3=C.txt}) end)
+    DB.MouseLeave:Connect(function() tw(DB,QT,{BackgroundColor3=C.surf2}); tw(DStr,QT,{Transparency=0.4}); tw(DIco,QT,{ImageColor3=C.dim}); tw(DLb,QT,{TextColor3=C.dim}) end)
     DB.MouseButton1Click:Connect(function()
         setclipboard("https://discord.gg/gngstore")
         Library.SendNotification({title="Discord",text="Link copied!",icon="rbxassetid://112538196670712",duration=3})
     end)
 
-    -- Minimize
-    local Min=Instance.new("TextButton"); Min.Name="Minimize"; Min.Size=UDim2.fromOffset(26,26)
-    Min.AnchorPoint=Vector2.new(1,0.5); Min.Position=UDim2.new(1,-10,0.5,0)
-    Min.BackgroundColor3=C.surf2; Min.BorderSizePixel=0; Min.Text=""; Min.AutoButtonColor=false; Min.Parent=TB
-    corner(Min,UDim.new(0,5)); stroke(Min,C.bdr,1)
-    local MI=Instance.new("ImageLabel"); MI.Image="rbxassetid://10030850935"
-    MI.Size=UDim2.fromOffset(12,12); MI.AnchorPoint=Vector2.new(0.5,0.5); MI.Position=UDim2.new(0.5,0,0.5,0)
-    MI.BackgroundTransparency=1; MI.ImageColor3=C.dim; MI.ZIndex=2; MI.Parent=Min
-    Min.MouseEnter:Connect(function() tw(Min,QT,{BackgroundColor3=C.acc}); tw(MI,QT,{ImageColor3=C.txt}) end)
-    Min.MouseLeave:Connect(function() tw(Min,QT,{BackgroundColor3=C.surf2}); tw(MI,QT,{ImageColor3=C.dim}) end)
+    -- RGB dot (status indicator, replaces old X button)
+    local Dot=Instance.new("Frame"); Dot.Size=UDim2.fromOffset(10,10); Dot.AnchorPoint=Vector2.new(1,0.5)
+    Dot.Position=UDim2.new(1,0,0.5,0); Dot.BackgroundColor3=C.acc; Dot.BorderSizePixel=0; Dot.Parent=RightGroup
+    corner(Dot,UDim.new(1,0)); rgbBg(Dot)
+    -- pulse
+    task.spawn(function()
+        while Dot and Dot.Parent do
+            tw(Dot,TweenInfo.new(0.9,Enum.EasingStyle.Sine),{BackgroundTransparency=0.6}); task.wait(0.9)
+            tw(Dot,TweenInfo.new(0.9,Enum.EasingStyle.Sine),{BackgroundTransparency=0}); task.wait(0.9)
+        end
+    end)
 
     -- ═══════════════════════ TAB BAR ═══════════════════════
     local TBF=Instance.new("Frame"); TBF.Name="TabBarFrame"
@@ -398,7 +430,7 @@ function Library:create_ui()
 
     -- ═══════════════════════ CONTENT ═══════════════════════
     local CA=Instance.new("Frame"); CA.Name="ContentArea"
-    CA.Size=UDim2.fromOffset(720,378); CA.Position=UDim2.fromOffset(0,82)
+    CA.Size=UDim2.new(1,0,1,-82); CA.Position=UDim2.fromOffset(0,82)
     CA.BackgroundTransparency=1; CA.BorderSizePixel=0; CA.Parent=Han
 
     -- center divider
@@ -440,9 +472,11 @@ function Library:create_ui()
     function self:change_visiblity(state)
         if state then
             tw(Con,QL,{Size=UDim2.fromOffset(720,460)})
+            tw(ChevIco,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Rotation=90})
         else
-            -- minimize: shrink to just topbar height so button stays visible
-            tw(Con,QL,{Size=UDim2.fromOffset(720,46)})
+            -- compact: only pill visible (190px wide, 46px tall)
+            tw(Con,QL,{Size=UDim2.fromOffset(192,46)})
+            tw(ChevIco,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Rotation=270})
         end
     end
     function self:load()
@@ -513,23 +547,25 @@ function Library:create_ui()
 
         -- Left section  (x=8, w=348)
         local LS=Instance.new("ScrollingFrame"); LS.Name="LS"
-        LS.Size=UDim2.fromOffset(348,370); LS.Position=UDim2.fromOffset(8,4)
-        LS.BackgroundTransparency=1; LS.BorderSizePixel=0; LS.ScrollBarThickness=0
-        LS.ScrollBarImageTransparency=1; LS.AutomaticCanvasSize=Enum.AutomaticSize.Y
+        LS.Size=UDim2.new(0,348,1,-8); LS.Position=UDim2.fromOffset(8,4)
+        LS.BackgroundTransparency=1; LS.BorderSizePixel=0; LS.ScrollBarThickness=3
+        LS.ScrollBarImageTransparency=0.7; LS.ScrollBarImageColor3=C.bdr
+        LS.AutomaticCanvasSize=Enum.AutomaticSize.Y
         LS.CanvasSize=UDim2.new(0,0,0,0); LS.Visible=false; LS.Parent=Secs
         local LSL=Instance.new("UIListLayout",LS); LSL.Padding=UDim.new(0,8)
         LSL.HorizontalAlignment=Enum.HorizontalAlignment.Center; LSL.SortOrder=Enum.SortOrder.LayoutOrder
-        local LSP=Instance.new("UIPadding",LS); LSP.PaddingTop=UDim.new(0,5)
+        local LSP=Instance.new("UIPadding",LS); LSP.PaddingTop=UDim.new(0,5); LSP.PaddingBottom=UDim.new(0,8)
 
         -- Right section (x=368, w=348)
         local RS=Instance.new("ScrollingFrame"); RS.Name="RS"
-        RS.Size=UDim2.fromOffset(348,370); RS.Position=UDim2.fromOffset(368,4)
-        RS.BackgroundTransparency=1; RS.BorderSizePixel=0; RS.ScrollBarThickness=0
-        RS.ScrollBarImageTransparency=1; RS.AutomaticCanvasSize=Enum.AutomaticSize.Y
+        RS.Size=UDim2.new(0,348,1,-8); RS.Position=UDim2.fromOffset(368,4)
+        RS.BackgroundTransparency=1; RS.BorderSizePixel=0; RS.ScrollBarThickness=3
+        RS.ScrollBarImageTransparency=0.7; RS.ScrollBarImageColor3=C.bdr
+        RS.AutomaticCanvasSize=Enum.AutomaticSize.Y
         RS.CanvasSize=UDim2.new(0,0,0,0); RS.Visible=false; RS.Parent=Secs
         local RSL=Instance.new("UIListLayout",RS); RSL.Padding=UDim.new(0,8)
         RSL.HorizontalAlignment=Enum.HorizontalAlignment.Center; RSL.SortOrder=Enum.SortOrder.LayoutOrder
-        local RSP=Instance.new("UIPadding",RS); RSP.PaddingTop=UDim.new(0,5)
+        local RSP=Instance.new("UIPadding",RS); RSP.PaddingTop=UDim.new(0,5); RSP.PaddingBottom=UDim.new(0,8)
 
         self._tab+=1
         if first then self:update_tabs(Tab); self:update_sections(LS,RS) end
@@ -1324,12 +1360,12 @@ function Library:create_ui()
         return TM
     end -- create_tab
 
-    -- toggle visibility
+    -- toggle visibility (Insert key or click logo pill)
     Connections.vis=UIS.InputBegan:Connect(function(inp,proc)
         if inp.KeyCode~=Enum.KeyCode.Insert then return end
         self._ui_open=not self._ui_open; self:change_visiblity(self._ui_open)
     end)
-    Min.MouseButton1Click:Connect(function()
+    LogoPill.MouseButton1Click:Connect(function()
         self._ui_open=not self._ui_open; self:change_visiblity(self._ui_open)
     end)
 

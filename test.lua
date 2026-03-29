@@ -7187,8 +7187,6 @@ function Library.new(settings)
         root._settings_page = Library:CreateSettingsPage(root._window, root._watermark, root._keybind_list)
     end
 
-    Library:LoadAutoloadConfig(true)
-
     return root
 end
 
@@ -7211,6 +7209,11 @@ function CompatRoot:Unload()
 end
 
 function CompatRoot:load()
+    if not self._autoload_loaded then
+        self._autoload_loaded = true
+        Library:LoadAutoloadConfig(true)
+    end
+
     return self
 end
 

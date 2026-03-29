@@ -2,8 +2,8 @@
     reverse ui library
     made by samet
     
-    https://discord.gg/VhvTd5HV8d
-    ^^ join for custom commissions
+    https://discord.gg/your-server
+    ^^ replace with your own invite
 
     example/documentation is at the bottom
     date: 19.07.2025
@@ -1228,10 +1228,6 @@ local Library do
                     Items["Text"]:Tween(nil, {Position = UDim2New(0, 13, 0.5, 0)})
 
                     Library.CurrentPage = Page
-
-                    if Data.Window.UpdateSearch then
-                        Data.Window:UpdateSearch()
-                    end
                 else
                     Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0.6})
                     Items["ButtonBorder"]:Tween(nil, {Transparency = 0.6})
@@ -5327,61 +5323,6 @@ local Library do
                 end)
             end
 
-            Items["Search"] = Instances:Create("Frame", {
-                Parent = Items["Side"].Instance,
-                Name = "\0",
-                BorderColor3 = FromRGB(12, 12, 12),
-                AnchorPoint = Vector2New(0, 1),
-                BackgroundTransparency = 0.4000000059604645,
-                Position = UDim2New(0, 6, 1, -6),
-                Size = UDim2New(0, 92, 0, 20),
-                BorderSizePixel = 2,
-                BackgroundColor3 = FromRGB(14, 17, 15)
-            })  Items["Search"]:AddToTheme({BackgroundColor3 = "Background", BorderColor3 = "Border"})
-
-            Items["SearchStroke"] = Items["Search"]:Border("Outline")
-
-            Items["Icon"] = Instances:Create("ImageLabel", {
-                Parent = Items["Search"].Instance,
-                Name = "\0",
-                ScaleType = Enum.ScaleType.Fit,
-                BorderColor3 = FromRGB(0, 0, 0),
-                AnchorPoint = Vector2New(0, 0.5),
-                Image = "rbxassetid://71197946135150",
-                BackgroundTransparency = 1,
-                Position = UDim2New(0, 0, 0.5, 0),
-                Size = UDim2New(0, 16, 0, 16),
-                BorderSizePixel = 0,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            })
-
-            Items["Input"] = Instances:Create("TextBox", {
-                Parent = Items["Search"].Instance,
-                Name = "\0",
-                FontFace = Library.Font,
-                CursorPosition = -1,
-                TextColor3 = FromRGB(235, 235, 235),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Text = "",
-                Size = UDim2New(1, -22, 1, 0),
-                Position = UDim2New(0, 22, 0, 0),
-                BorderSizePixel = 0,
-                BackgroundTransparency = 1,
-                PlaceholderColor3 = FromRGB(185, 185, 185),
-                PlaceholderText = "search..",
-                TextSize = 9,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            })  Items["Input"]:AddToTheme({TextColor3 = "Text", PlaceholderColor3 = "Placeholder Text"})
-
-            Items["Input"]:TextBorder()
-
-            Instances:Create("UIPadding", {
-                Parent = Items["Search"].Instance,
-                Name = "\0",
-                PaddingRight = UDimNew(0, 5),
-                PaddingLeft = UDimNew(0, 3)
-            })
-
             Items["Pages"] = Instances:Create("Frame", {
                 Parent = Items["Side"].Instance,
                 Name = "\0",
@@ -5417,7 +5358,7 @@ local Library do
                 AnchorPoint = Vector2New(1, 1),
                 BackgroundTransparency = 1,
                 Position = UDim2New(1, -6, 1, -6),
-                Size = UDim2New(0, 88, 0, 25),
+                Size = UDim2New(0, 136, 0, 25),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })
@@ -5512,26 +5453,6 @@ local Library do
 
         local Debounce = false
 
-        Items["Input"]:Connect("Focused", function()
-            Items["Search"]:Tween(nil, {BackgroundTransparency = 0})
-            Items["SearchStroke"]:Tween(nil, {Transparency = 0})
-        end)
-
-        Items["Input"]:Connect("FocusLost", function()
-            Items["Search"]:Tween(nil, {BackgroundTransparency = 0.4})
-            Items["SearchStroke"]:Tween(nil, {Transparency = 0.4})
-        end)
-
-        Items["Input"]:OnHover(function()
-            Items["Search"]:ChangeItemTheme({BackgroundColor3 = "Hovered Element", BorderColor3 = "Border"})
-            Items["Search"]:Tween(nil, {BackgroundColor3 = Library.Theme["Hovered Element"]})
-        end)
-
-        Items["Input"]:OnHoverLeave(function()
-            Items["Search"]:ChangeItemTheme({BackgroundColor3 = "Background", BorderColor3 = "Border"})
-            Items["Search"]:Tween(nil, {BackgroundColor3 = Library.Theme.Background})
-        end)
-
         Library:Connect(RunService.RenderStepped, function()
             if not Items["MouseBackground"].Instance.Visible then
                 return
@@ -5607,47 +5528,6 @@ local Library do
             if MenuKeybind ~= "None" and (tostring(Input.KeyCode) == MenuKeybind or tostring(Input.UserInputType) == MenuKeybind) then
                 Window:Toggle()
             end
-        end)
-
-        function Window:UpdateSearch()
-            local SearchText = StringLower(Items["Input"].Instance.Text or "")
-            local PageSearchData = Library.SearchItems[Library.CurrentPage]
-
-            if not PageSearchData then
-                return
-            end
-
-            for _, Value in PageSearchData do
-                local Element = Value.Element
-                local Name = StringLower(tostring(Value.Name or ""))
-
-                Window:AddToOldSizes(Element, Element.Instance.Size)
-
-                local Matches = SearchText == "" or StringFind(Name, SearchText, 1, true)
-                if Matches then
-                    Element.Instance.Visible = true
-                    Element:Tween(TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = Window:GetOldSize(Element)})
-                else
-                    local OldSize = Window:GetOldSize(Element)
-                    Element:Tween(TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2New(OldSize.X.Scale, OldSize.X.Offset, 0, 0)})
-                    task.delay(0.1, function()
-                        local CurrentSearchText = StringLower(Items["Input"].Instance.Text or "")
-                        local StillMatches = CurrentSearchText == "" or StringFind(Name, CurrentSearchText, 1, true)
-
-                        if Element.Instance and not StillMatches then
-                            Element.Instance.Visible = false
-                        end
-                    end)
-                end
-            end
-        end
-
-        Items["Input"]:Connect("Focused", function()
-            Window:UpdateSearch()
-        end)
-
-        Library:Connect(Items["Input"].Instance:GetPropertyChangedSignal("Text"), function()
-            Window:UpdateSearch()
         end)
 
         Window:SetOpen(true)

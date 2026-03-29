@@ -72,7 +72,7 @@ local Library do
     Library = {
         Theme =  { },
 
-        MenuKeybind = tostring(Enum.KeyCode.RightControl), 
+        MenuKeybind = "None", 
         Flags = { },
 
         Tween = {
@@ -785,6 +785,24 @@ local Library do
     Library.NextFlag = function(self)
         local FlagNumber = self.UnnamedFlags + 1
         return StringFormat("flag_number_%s_%s", FlagNumber, HttpService:GenerateGUID(false))
+    end
+
+    Library.NormalizeKeybindValue = function(self, Key)
+        if type(Key) == "table" then
+            Key = Key.Key or Key.key
+        end
+
+        if Key == nil or Key == false then
+            return "None"
+        end
+
+        Key = tostring(Key)
+
+        if Key == "" or Key == "None" or Key == "Backspace" or Key == "Enum.KeyCode.Backspace" then
+            return "None"
+        end
+
+        return Key
     end
 
     Library.AddToTheme = function(self, Item, Properties)
@@ -4626,6 +4644,8 @@ local Library do
     -- Library components
     Library.Watermark = function(self, Name)
         local Watermark = { }
+        local BoundWindow
+        local ClickChanged
 
         local Items = { } do 
             Items["Watermark"] = Instances:Create("Frame", {
@@ -4687,8 +4707,46 @@ local Library do
             })  Items["Liner"]:AddToTheme({BackgroundColor3 = "Accent"})
         end
 
+        Items["Watermark"]:Connect("InputBegan", function(Input)
+            if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
+                return
+            end
+
+            local StartPosition = Input.Position
+
+            if ClickChanged then
+                ClickChanged:Disconnect()
+                ClickChanged = nil
+            end
+
+            ClickChanged = Input.Changed:Connect(function()
+                if Input.UserInputState ~= Enum.UserInputState.End then
+                    return
+                end
+
+                local DeltaX = MathAbs(Input.Position.X - StartPosition.X)
+                local DeltaY = MathAbs(Input.Position.Y - StartPosition.Y)
+
+                if BoundWindow and DeltaX <= 6 and DeltaY <= 6 then
+                    if BoundWindow.Toggle then
+                        BoundWindow:Toggle()
+                    elseif BoundWindow.SetOpen then
+                        BoundWindow:SetOpen(not BoundWindow.IsOpen)
+                    end
+                end
+
+                ClickChanged:Disconnect()
+                ClickChanged = nil
+            end)
+        end)
+
         function Watermark:SetVisibility(Bool)
             Items["Watermark"].Instance.Visible = Bool
+        end
+
+        function Watermark:BindToggle(Window)
+            BoundWindow = Window
+            return Watermark
         end
 
         return Watermark
@@ -5450,9 +5508,15 @@ local Library do
             end)
         end
 
+        function Window:Toggle()
+            Window:SetOpen(not Window.IsOpen)
+        end
+
         Library:Connect(UserInputService.InputBegan, function(Input)
-            if tostring(Input.KeyCode) == Library.MenuKeybind or tostring(Input.UserInputType) == Library.MenuKeybind then
-                Window:SetOpen(not Window.IsOpen)
+            local MenuKeybind = Library:NormalizeKeybindValue(Library.MenuKeybind)
+
+            if MenuKeybind ~= "None" and (tostring(Input.KeyCode) == MenuKeybind or tostring(Input.UserInputType) == MenuKeybind) then
+                Window:Toggle()
             end
         end)
 
@@ -5707,7 +5771,7 @@ local Library do
                 Section = self.Section,
 
                 Flag = Data.Flag or Data.flag or Library:NextFlag(),
-                Default = Data.Default or Data.default or Enum.KeyCode.RightShift,
+                Default = Data.Default or Data.default or Enum.KeyCode.Backspace,
                 Callback = Data.Callback or Data.callback or function() end,
                 Mode = Data.Mode or Data.mode or "Toggle",
             }
@@ -5881,7 +5945,7 @@ local Library do
                 Section = self.Section,
 
                 Flag = Data.Flag or Data.flag or Library:NextFlag(),
-                Default = Data.Default or Data.default or Enum.KeyCode.RightShift,
+                Default = Data.Default or Data.default or Enum.KeyCode.Backspace,
                 Callback = Data.Callback or Data.callback or function() end,
                 Mode = Data.Mode or Data.mode or "Toggle",
             }
@@ -6200,10 +6264,11 @@ local Library do
                     SettingsSection:Label("UI Keybind"):Keybind({
                         Name = "Menu keybind",
                         Flag = "UIKeybind",
-                        Default = Library.MenuKeybind,
+                        Default = Library:NormalizeKeybindValue(Library.MenuKeybind),
                         Mode = "Toggle",
                         Callback = function()
-                            Library.MenuKeybind = Library.Flags["UIKeybind"].Key
+                            local KeybindData = Library.Flags["UIKeybind"]
+                            Library.MenuKeybind = Library:NormalizeKeybindValue(KeybindData and KeybindData.Key)
                         end
                     })
                 end
@@ -6643,7 +6708,7 @@ end
 function Library.new(settings)
     settings = settings or {}
 
-    Library.MenuKeybind = tostring(compat_enum_input(compat_pick(settings, {"menu_keybind", "MenuKeybind"}, Enum.KeyCode.Insert)))
+    Library.MenuKeybind = Library:NormalizeKeybindValue(compat_pick(settings, {"menu_keybind", "MenuKeybind"}, nil))
 
     local root = setmetatable({
         _window = Library:Window({
@@ -6654,15 +6719,16 @@ function Library.new(settings)
         Flags = Library.Flags
     }, CompatRoot)
 
-    if compat_pick(settings, {"watermark", "Watermark"}, false) then
-        root._watermark = Library:Watermark(compat_pick(settings, {"watermark_text", "WatermarkText"}, ""))
+    if compat_pick(settings, {"watermark", "Watermark"}, true) then
+        root._watermark = Library:Watermark(compat_pick(settings, {"watermark_text", "WatermarkText"}, "This is a watermark"))
+        root._watermark:BindToggle(root._window)
     end
 
-    if compat_pick(settings, {"keybind_list", "KeybindList"}, false) then
+    if compat_pick(settings, {"keybind_list", "KeybindList"}, true) then
         root._keybind_list = Library:KeybindList()
     end
 
-    if compat_pick(settings, {"settings_page", "SettingsPage"}, false) and root._watermark and root._keybind_list then
+    if compat_pick(settings, {"settings_page", "SettingsPage"}, true) and root._watermark and root._keybind_list then
         root._settings_page = Library:CreateSettingsPage(root._window, root._watermark, root._keybind_list)
     end
 

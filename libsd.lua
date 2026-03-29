@@ -6719,7 +6719,7 @@ function Library.new(settings)
 
     local root = setmetatable({
         _window = Library:Window({
-            Logo = compat_pick(settings, {"logo", "Logo"}, "107678529986814"),
+            Logo = compat_pick(settings, {"logo", "Logo"}, "132702728471228"),
             FadeTime = compat_pick(settings, {"fade_time", "FadeTime", "fadeTime"}, 0.3),
             Size = compat_pick(settings, {"size", "Size"}, nil)
         }),
@@ -7091,7 +7091,7 @@ end
 
 if false then
 local Window = Library:Window({
-    Logo = "107678529986814",
+    Logo = "132702728471228",
     FadeTime = 0.3,
 })
 

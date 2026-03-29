@@ -133,6 +133,7 @@ local Library do
 
         PendingConfigData = nil,
         PendingConfigName = nil,
+        ApplyingPendingConfig = false,
     }
 
     Library.__index = Library
@@ -143,7 +144,7 @@ local Library do
         __newindex = function(self, Index, Value)
             rawset(self, Index, Value)
 
-            if type(Value) == "function" then
+            if type(Value) == "function" and not Library.ApplyingPendingConfig then
                 Library:ApplyPendingConfigFlag(Index)
             end
         end
@@ -1014,6 +1015,10 @@ local Library do
     end
 
     Library.ApplyPendingConfigFlag = function(self, Flag)
+        if Library.ApplyingPendingConfig then
+            return true
+        end
+
         if not Library.PendingConfigData or not Library.PendingConfigData[Flag] then
             return true
         end
@@ -1037,6 +1042,7 @@ local Library do
         end
 
         local Success, Result = Library:SafeCall(function()
+            Library.ApplyingPendingConfig = true
             local LoadedFlags = { }
 
             for Index, Value in Library.PendingConfigData do
@@ -1053,6 +1059,8 @@ local Library do
                 Library.PendingConfigData = nil
             end
         end)
+
+        Library.ApplyingPendingConfig = false
 
         return Success, Result
     end

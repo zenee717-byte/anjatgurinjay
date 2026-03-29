@@ -6778,6 +6778,15 @@ function Library.new(settings)
         compatTabMode = "settings_subpages"
     end
 
+    local compatModuleTabs = compat_pick(settings, {
+        "module_tabs",
+        "ModuleTabs",
+        "module_subpages",
+        "ModuleSubPages",
+        "modules_like_settings",
+        "ModulesLikeSettings"
+    }, true)
+
     local root = setmetatable({
         _window = Library:Window({
             Logo = compat_pick(settings, {"logo", "Logo"}, "107678529986814"),
@@ -6785,7 +6794,8 @@ function Library.new(settings)
             Size = compat_pick(settings, {"size", "Size"}, nil)
         }),
         Flags = Library.Flags,
-        _compat_tab_mode = compatTabMode
+        _compat_tab_mode = compatTabMode,
+        _compat_module_tabs = compatModuleTabs
     }, CompatRoot)
 
     if compat_pick(settings, {"watermark", "Watermark"}, true) then
@@ -6807,6 +6817,7 @@ end
 function CompatRoot:create_tab(title, icon)
     local page
     local tabMode = tostring(self._compat_tab_mode or "")
+    local canHostModuleTabs = false
 
     if tabMode == "settings_subpages" or tabMode == "top" then
         local hostPage = self._settings_page
@@ -6827,15 +6838,19 @@ function CompatRoot:create_tab(title, icon)
     else
         page = self._window:Page({
             Name = title or "Tab",
-            Columns = 2
+            Columns = 2,
+            SubPages = self._compat_module_tabs and true or false
         })
+
+        canHostModuleTabs = self._compat_module_tabs and true or false
     end
 
     return setmetatable({
         _root = self,
         _page = page,
         _title = title,
-        _icon = icon
+        _icon = icon,
+        _module_tabs = canHostModuleTabs
     }, CompatTab)
 end
 
@@ -6859,14 +6874,30 @@ function CompatTab:create_module(settings)
     local sectionSide = compat_pick(settings, {"section", "Section", "side", "Side"}, "left")
     local side = (sectionSide == "right" or sectionSide == 2) and 2 or 1
     local moduleFlag = compat_flag(settings)
+    local moduleTitle = compat_title(settings, "Module")
+    local section
+    local hostPage = self._page
 
-    local section = self._page:Section({
-        Name = compat_title(settings, "Module"),
-        Side = side
-    })
+    if self._module_tabs then
+        hostPage = self._page:SubPage({
+            Name = moduleTitle,
+            Columns = compat_pick(settings, {"columns", "Columns"}, 2)
+        })
+
+        section = hostPage:Section({
+            Name = compat_pick(settings, {"section_title", "SectionTitle", "body_title", "BodyTitle"}, moduleTitle),
+            Side = 1
+        })
+    else
+        section = self._page:Section({
+            Name = moduleTitle,
+            Side = side
+        })
+    end
 
     local module = setmetatable({
         _tab = self,
+        _page = hostPage,
         _section = section,
         _flag = moduleFlag,
         _state = false,
@@ -7504,7 +7535,7 @@ local demo = Library.new({
     watermark_text = "REVERSE",
     keybind_list = true,
     settings_page = true,
-    tab_mode = "settings_subpages",
+    module_tabs = true,
     menu_keybind = "None",
     fade_time = 0
 })

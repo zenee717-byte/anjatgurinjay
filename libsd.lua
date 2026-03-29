@@ -6520,6 +6520,18 @@ local function compat_wrap_dropdown(raw)
         return self
     end
 
+    function dropdown:set_options(list)
+        raw:Refresh(list or {})
+        sync()
+
+        if self.Value ~= nil and raw.Options and raw.Options[self.Value] then
+            raw:Set(self.Value)
+            sync()
+        end
+
+        return self
+    end
+
     function dropdown:New(settings)
         if type(settings) ~= "table" then
             return self
@@ -6538,6 +6550,12 @@ local function compat_wrap_dropdown(raw)
         sync()
         return self
     end
+
+    dropdown.get = dropdown.Get
+    dropdown.set = dropdown.Set
+    dropdown.add = dropdown.Add
+    dropdown.remove = dropdown.Remove
+    dropdown.refresh = dropdown.Refresh
 
     return dropdown
 end
@@ -6668,6 +6686,12 @@ end
 function CompatRoot:Unload()
     Library:Unload()
 end
+
+function CompatRoot:load()
+    return self
+end
+
+CompatRoot.Load = CompatRoot.load
 
 function CompatRoot:SendNotification(settings)
     return Library.SendNotification(settings)

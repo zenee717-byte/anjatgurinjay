@@ -771,10 +771,10 @@ local Library do
 
         if not Success then
             warn(Result)
-            return false
+            return false, Result
         end
 
-        return Success
+        return true, Result
     end
 
     Library.Connect = function(self, Event, Callback, Name)
@@ -887,6 +887,34 @@ local Library do
 		return `<font color="rgb({MathFloor(Color.R * 255)}, {MathFloor(Color.G * 255)}, {MathFloor(Color.B * 255)})">{Text}</font>`
 	end
 
+    Library.NormalizeConfigName = function(self, Config)
+        if type(Config) ~= "string" then
+            return nil
+        end
+
+        Config = StringGSub(Config, "\\", "/")
+        Config = StringGSub(Config, "^.+/", "")
+        Config = StringGSub(Config, "%.json$", "")
+        Config = StringGSub(Config, "^%s+", "")
+        Config = StringGSub(Config, "%s+$", "")
+
+        if Config == "" then
+            return nil
+        end
+
+        return Config
+    end
+
+    Library.GetConfigPath = function(self, Config)
+        local ConfigName = Library:NormalizeConfigName(Config)
+
+        if not ConfigName then
+            return nil
+        end
+
+        return Library.Folders.Configs .. "/" .. ConfigName .. ".json", ConfigName
+    end
+
     Library.GetConfig = function(self)
         local Config = { } 
 
@@ -900,13 +928,25 @@ local Library do
                     Config[Index] = Value
                 end
             end
+
+            return HttpService:JSONEncode(Config)
         end)
 
-        return HttpService:JSONEncode(Config)
+        if not Success then
+            return nil, Result
+        end
+
+        return Result
     end
 
     Library.LoadConfig = function(self, Config)
-        local Decoded = HttpService:JSONDecode(Config)
+        local DecodeSuccess, Decoded = Library:SafeCall(function()
+            return HttpService:JSONDecode(Config)
+        end)
+
+        if not DecodeSuccess then
+            return false, Decoded
+        end
 
         local Success, Result = Library:SafeCall(function()
             for Index, Value in Decoded do 
@@ -930,34 +970,33 @@ local Library do
     end
 
     Library.DeleteConfig = function(self, Config)
-        if isfile(Library.Folders.Configs .. "/" .. Config) then 
-            delfile(Library.Folders.Configs .. "/" .. Config)
+        local ConfigPath = Library:GetConfigPath(Config)
+
+        if ConfigPath and isfile(ConfigPath) then 
+            delfile(ConfigPath)
         end
     end
 
     Library.RefreshConfigsList = function(self, Element)
-        local CurrentList = { }
         local List = { }
 
-        local ConfigFolderName = StringGSub(Library.Folders.Configs, Library.Folders.Directory .. "/", "")
-
         for Index, Value in listfiles(Library.Folders.Configs) do
-            local FileName = StringGSub(Value, Library.Folders.Directory .. "\\" .. ConfigFolderName .. "\\", "")
-            List[Index] = FileName
+            local ConfigName = Library:NormalizeConfigName(Value)
+
+            if ConfigName then
+                TableInsert(List, ConfigName)
+            end
         end
 
-        local IsNew = #List ~= CurrentList
+        table.sort(List)
+        Element:Refresh(List)
 
-        if not IsNew then
-            for Index = 1, #List do
-                if List[Index] ~= CurrentList[Index] then
-                    IsNew = true
-                    break
-                end
+        if Element.Get and Element.Set then
+            local CurrentValue = Library:NormalizeConfigName(Element:Get())
+
+            if CurrentValue and TableFind(List, CurrentValue) then
+                Element:Set(CurrentValue)
             end
-        else
-            CurrentList = List
-            Element:Refresh(CurrentList)
         end
     end
 
@@ -6194,6 +6233,16 @@ local Library do
                     local ConfigName
                     local ConfigSelected
 
+                    local function resolve_config_name(prefer_selected)
+                        local Value = prefer_selected and ConfigSelected or ConfigName
+
+                        if not Value or Value == "" then
+                            Value = prefer_selected and ConfigName or ConfigSelected
+                        end
+
+                        return Library:NormalizeConfigName(Value)
+                    end
+
                     local ConfigsSearchbox = ConfigsSection:Searchbox({
                         Name = "SearchboxConfigs",
                         Flag = "ConfigsSearchobx",
@@ -6217,46 +6266,103 @@ local Library do
                     local CreateAndDeleteButton = ConfigsSection:Button()
 
                     CreateAndDeleteButton:Add("Create", function()
-                        if ConfigName and ConfigName ~= "" then
-                            if not isfile(Library.Folders.Configs .. "/" .. ConfigName .. ".json") then
-                                writefile(Library.Folders.Configs .. "/" .. ConfigName .. ".json", Library:GetConfig())
-                                Library:Notification("Success", "Created config "..ConfigName .. " succesfully", 5)
-                                Library:RefreshConfigsList(ConfigsSearchbox)
-                            else
-                                Library:Notification("Error", "Config with the name "..ConfigName .. " already exists", 5)
-                                return
-                            end
+                        local ResolvedConfigName = resolve_config_name(false)
+
+                        if not ResolvedConfigName then
+                            Library:Notification("Error", "Enter a config name first", 5)
+                            return
                         end
+
+                        local ConfigPath = Library:GetConfigPath(ResolvedConfigName)
+
+                        if isfile(ConfigPath) then
+                            Library:Notification("Error", "Config with the name "..ResolvedConfigName .. " already exists", 5)
+                            return
+                        end
+
+                        local ConfigData, ConfigError = Library:GetConfig()
+
+                        if not ConfigData then
+                            Library:Notification("Error", "Failed to create config:\n"..tostring(ConfigError), 5)
+                            return
+                        end
+
+                        writefile(ConfigPath, ConfigData)
+                        ConfigSelected = ResolvedConfigName
+                        Library:Notification("Success", "Created config "..ResolvedConfigName .. " succesfully", 5)
+                        Library:RefreshConfigsList(ConfigsSearchbox)
+                        ConfigsSearchbox:Set(ResolvedConfigName)
                     end)
 
                     CreateAndDeleteButton:Add("Delete", function()
-                        if ConfigSelected then
-                            Library:DeleteConfig(ConfigSelected)
-                            Library:Notification("Success", "Deleted config "..ConfigSelected .. " succesfully", 5)
-                            Library:RefreshConfigsList(ConfigsSearchbox)
+                        local ResolvedConfigName = resolve_config_name(true)
+
+                        if not ResolvedConfigName then
+                            Library:Notification("Error", "Select a config first", 5)
+                            return
                         end
+
+                        local ConfigPath = Library:GetConfigPath(ResolvedConfigName)
+
+                        if not ConfigPath or not isfile(ConfigPath) then
+                            Library:Notification("Error", "Config "..ResolvedConfigName .. " was not found", 5)
+                            return
+                        end
+
+                        Library:DeleteConfig(ResolvedConfigName)
+                        ConfigSelected = nil
+                        Library:Notification("Success", "Deleted config "..ResolvedConfigName .. " succesfully", 5)
+                        Library:RefreshConfigsList(ConfigsSearchbox)
                     end)
 
                     local LoadAndSaveButton = ConfigsSection:Button()    
 
                     LoadAndSaveButton:Add("Load", function()
-                        if ConfigSelected then
-                            local Success, Result = Library:LoadConfig(readfile(Library.Folders.Configs .. "/" .. ConfigSelected))
+                        local ResolvedConfigName = resolve_config_name(true)
 
-                            if Success then 
-                                Library:Notification("Success", "Loaded config "..ConfigSelected .. " succesfully", 5)
-                            else
-                                Library:Notification("Error", "Failed to load config "..ConfigSelected .. " report this to the devs:\n"..Result, 5)
-                            end
+                        if not ResolvedConfigName then
+                            Library:Notification("Error", "Select a config first", 5)
+                            return
+                        end
+
+                        local ConfigPath = Library:GetConfigPath(ResolvedConfigName)
+
+                        if not ConfigPath or not isfile(ConfigPath) then
+                            Library:Notification("Error", "Config "..ResolvedConfigName .. " was not found", 5)
+                            return
+                        end
+
+                        local Success, Result = Library:LoadConfig(readfile(ConfigPath))
+
+                        if Success then 
+                            ConfigSelected = ResolvedConfigName
+                            Library:Notification("Success", "Loaded config "..ResolvedConfigName .. " succesfully", 5)
+                        else
+                            Library:Notification("Error", "Failed to load config "..ResolvedConfigName .. ":\n"..tostring(Result), 5)
                         end
                     end)
 
                     LoadAndSaveButton:Add("Save", function()
-                        if ConfigName and ConfigName ~= "" then
-                            writefile(Library.Folders.Configs .. "/" .. ConfigName .. ".json", Library:GetConfig())
-                            Library:Notification("Success", "Saved config "..ConfigName .. " succesfully", 5)
-                            Library:RefreshConfigsList(ConfigsSearchbox)
+                        local ResolvedConfigName = resolve_config_name(false)
+
+                        if not ResolvedConfigName then
+                            Library:Notification("Error", "Enter or select a config first", 5)
+                            return
                         end
+
+                        local ConfigPath = Library:GetConfigPath(ResolvedConfigName)
+                        local ConfigData, ConfigError = Library:GetConfig()
+
+                        if not ConfigData then
+                            Library:Notification("Error", "Failed to save config:\n"..tostring(ConfigError), 5)
+                            return
+                        end
+
+                        writefile(ConfigPath, ConfigData)
+                        ConfigSelected = ResolvedConfigName
+                        Library:Notification("Success", "Saved config "..ResolvedConfigName .. " succesfully", 5)
+                        Library:RefreshConfigsList(ConfigsSearchbox)
+                        ConfigsSearchbox:Set(ResolvedConfigName)
                     end)
 
                     Library:RefreshConfigsList(ConfigsSearchbox)

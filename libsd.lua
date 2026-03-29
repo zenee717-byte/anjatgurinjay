@@ -727,6 +727,28 @@ local Library do
         return getcustomasset(self.Folders.Assets .. "/" .. ImageData[1])
     end
 
+    Library.ResolveAsset = function(self, Asset, UseThumbnail)
+        if Asset == nil then
+            return ""
+        end
+
+        Asset = tostring(Asset)
+
+        if Asset == "" then
+            return ""
+        end
+
+        if StringFind(Asset, "rbxassetid://") or StringFind(Asset, "rbxthumb://") or StringFind(Asset, "http://") or StringFind(Asset, "https://") then
+            return Asset
+        end
+
+        if UseThumbnail then
+            return StringFormat("rbxthumb://type=Asset&id=%s&w=150&h=150", Asset)
+        end
+
+        return "rbxassetid://" .. Asset
+    end
+
     Library.Round = function(self, Number, Float)
         local Multiplier = 1 / (Float or 1)
         return MathFloor(Number * Multiplier) / Multiplier
@@ -5263,17 +5285,31 @@ local Library do
             Items["Logo"] = Instances:Create("ImageLabel", {
                 Parent = Items["Side"].Instance,
                 Name = "\0",
-                ImageColor3 = FromRGB(202, 243, 255),
+                ImageColor3 = FromRGB(255, 255, 255),
                 ScaleType = Enum.ScaleType.Fit,
                 BorderColor3 = FromRGB(0, 0, 0),
                 AnchorPoint = Vector2New(0.5, 0),
-                Image = "rbxassetid://" .. Window.Logo,
+                Image = Library:ResolveAsset(Window.Logo),
                 BackgroundTransparency = 1,
                 Position = UDim2New(0.5, 0, 0, 12),
                 Size = UDim2New(0, 75, 0, 75),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
-            })  Items["Logo"]:AddToTheme({ImageColor3 = "Accent"})
+            })
+
+            if Window.Logo ~= "" then
+                Library:Thread(function()
+                    task.wait(0.75)
+
+                    local Success, IsLoaded = pcall(function()
+                        return Items["Logo"].Instance.IsLoaded
+                    end)
+
+                    if not Success or not IsLoaded then
+                        Items["Logo"].Instance.Image = Library:ResolveAsset(Window.Logo, true)
+                    end
+                end)
+            end
 
             Items["Search"] = Instances:Create("Frame", {
                 Parent = Items["Side"].Instance,
@@ -6719,7 +6755,7 @@ function Library.new(settings)
 
     local root = setmetatable({
         _window = Library:Window({
-            Logo = compat_pick(settings, {"logo", "Logo"}, "90851688357483"),
+            Logo = compat_pick(settings, {"logo", "Logo"}, "107678529986814"),
             FadeTime = compat_pick(settings, {"fade_time", "FadeTime", "fadeTime"}, 0.3),
             Size = compat_pick(settings, {"size", "Size"}, nil)
         }),
@@ -7091,7 +7127,7 @@ end
 
 if false then
 local Window = Library:Window({
-    Logo = "90851688357483",
+    Logo = "107678529986814",
     FadeTime = 0.3,
 })
 

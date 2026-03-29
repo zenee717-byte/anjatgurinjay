@@ -1123,10 +1123,10 @@ local Library do
                     Items["SubPages"] = Instances:Create("Frame", {
                         Parent = Items["Page"].Instance,
                         Name = "\0",
-                        Size = UDim2New(1, 0, 0, 0),
+                        Size = UDim2New(0, 0, 0, 35),
                         BorderColor3 = FromRGB(42, 49, 45),
                         BorderSizePixel = 2,
-                        AutomaticSize = Enum.AutomaticSize.Y,
+                        AutomaticSize = Enum.AutomaticSize.X,
                         BackgroundColor3 = FromRGB(20, 24, 21)
                     })  Items["SubPages"]:AddToTheme({BackgroundColor3 = "Page Background", BorderColor3 = "Outline"})
 
@@ -1135,19 +1135,16 @@ local Library do
                     Instances:Create("UIPadding", {
                         Parent = Items["SubPages"].Instance,
                         Name = "\0",
-                        PaddingTop = UDimNew(0, 7),
-                        PaddingBottom = UDimNew(0, 7),
                         PaddingRight = UDimNew(0, 7),
                         PaddingLeft = UDimNew(0, 7)
                     })
 
-                    Items["SubPagesLayout"] = Instances:Create("UIGridLayout", {
+                    Instances:Create("UIListLayout", {
                         Parent = Items["SubPages"].Instance,
                         Name = "\0",
-                        CellPadding = UDim2New(0, 8, 0, 8),
-                        CellSize = UDim2New(0.32, -2, 0, 24),
-                        FillDirectionMaxCells = 3,
-                        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
+                        FillDirection = Enum.FillDirection.Horizontal,
+                        Padding = UDimNew(0, 12),
                         SortOrder = Enum.SortOrder.LayoutOrder
                     })
 
@@ -1155,9 +1152,9 @@ local Library do
                         Parent = Items["Page"].Instance,
                         Name = "\0",
                         BackgroundTransparency = 1,
-                        Position = UDim2New(0, 0, 0, 0),
+                        Position = UDim2New(0, 0, 0, 51),
                         BorderColor3 = FromRGB(42, 49, 45),
-                        Size = UDim2New(1, 0, 1, 0),
+                        Size = UDim2New(1, 0, 1, -51),
                         BorderSizePixel = 0,
                         BackgroundColor3 = FromRGB(255, 255, 255)
                     })
@@ -1212,18 +1209,6 @@ local Library do
 
             local Debounce = false
 
-            if Data.SubPages and Items["SubPagesLayout"] then
-                local function UpdateSubPagesLayout()
-                    local absoluteHeight = Items["SubPagesLayout"].Instance.AbsoluteContentSize.Y + 14
-                    Items["SubPages"].Instance.Size = UDim2New(1, 0, 0, absoluteHeight)
-                    Items["Columns"].Instance.Position = UDim2New(0, 0, 0, absoluteHeight + 10)
-                    Items["Columns"].Instance.Size = UDim2New(1, 0, 1, -(absoluteHeight + 10))
-                end
-
-                UpdateSubPagesLayout()
-                Items["SubPagesLayout"].Instance:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateSubPagesLayout)
-            end
-
             function Page:Turn(Bool)
                 if Debounce then 
                     return 
@@ -1243,6 +1228,10 @@ local Library do
                     Items["Text"]:Tween(nil, {Position = UDim2New(0, 13, 0.5, 0)})
 
                     Library.CurrentPage = Page
+
+                    if Data.Window.UpdateSearch then
+                        Data.Window:UpdateSearch()
+                    end
                 else
                     Items["Inactive"]:Tween(nil, {BackgroundTransparency = 0.6})
                     Items["ButtonBorder"]:Tween(nil, {Transparency = 0.6})
@@ -1321,8 +1310,9 @@ local Library do
                     Text = "",
                     AutoButtonColor = false,
                     BackgroundTransparency = 1,
-                    Size = UDim2New(1, 0, 0, 24),
+                    Size = UDim2New(0, 0, 0, 20),
                     BorderSizePixel = 2,
+                    AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 14,
                     BackgroundColor3 = FromRGB(25, 30, 26)
                 })  Items["Inactive"]:AddToTheme({BackgroundColor3 = "Page Background", BorderColor3 = "Border"})
@@ -1344,13 +1334,11 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Text = Data.Name,
                     AnchorPoint = Vector2New(0.5, 0.5),
-                    Size = UDim2New(1, -12, 1, 0),
+                    Size = UDim2New(0, 0, 0, 15),
                     BackgroundTransparency = 1,
-                    Position = UDim2New(0.5, 0, 0.5, 0),
+                    Position = UDim2New(0.5, -5, 0.5, 0),
                     BorderSizePixel = 0,
-                    TextXAlignment = Enum.TextXAlignment.Center,
-                    TextYAlignment = Enum.TextYAlignment.Center,
-                    TextWrapped = true,
+                    AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 9,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Text"]:AddToTheme({TextColor3 = "Text"})
@@ -1360,16 +1348,16 @@ local Library do
                 Instances:Create("UIPadding", {
                     Parent = Items["Text"].Instance,
                     Name = "\0",
-                    PaddingRight = UDimNew(0, 6),
-                    PaddingLeft = UDimNew(0, 6)
+                    PaddingRight = UDimNew(0, 8),
+                    PaddingLeft = UDimNew(0, 8)
                 })
 
                 Instances:Create("UIPadding", {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
                     PaddingTop = UDimNew(0, 2),
-                    PaddingLeft = UDimNew(0, 12),
-                    PaddingRight = UDimNew(0, 8)
+                    PaddingLeft = UDimNew(0, 18),
+                    PaddingRight = UDimNew(0, 12)
                 })
 
                 Items["Glow"] = Instances:Create("Frame", {
@@ -1484,7 +1472,7 @@ local Library do
                     Items["ButtonBorder"]:Tween(nil, {Transparency = 1})
                     Items["Liner"]:Tween(nil, {BackgroundTransparency = 1})
                     Items["Glow"]:Tween(nil, {BackgroundTransparency = 1})
-                    Items["Text"]:Tween(nil, {Position = UDim2New(0.5, 0, 0.5, 0)})
+                    Items["Text"]:Tween(nil, {Position = UDim2New(0.5, -5, 0.5, 0)})
                 end
 
                 local AllInstances = Items["Page"].Instance:GetDescendants()
@@ -5346,9 +5334,8 @@ local Library do
                 AnchorPoint = Vector2New(0, 1),
                 BackgroundTransparency = 0.4000000059604645,
                 Position = UDim2New(0, 6, 1, -6),
-                Size = UDim2New(0, 0, 0, 20),
+                Size = UDim2New(0, 92, 0, 20),
                 BorderSizePixel = 2,
-                AutomaticSize = Enum.AutomaticSize.X,
                 BackgroundColor3 = FromRGB(14, 17, 15)
             })  Items["Search"]:AddToTheme({BackgroundColor3 = "Background", BorderColor3 = "Border"})
 
@@ -5376,13 +5363,12 @@ local Library do
                 TextColor3 = FromRGB(235, 235, 235),
                 BorderColor3 = FromRGB(0, 0, 0),
                 Text = "",
-                Size = UDim2New(0, 0, 1, 0),
+                Size = UDim2New(1, -22, 1, 0),
                 Position = UDim2New(0, 22, 0, 0),
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1,
                 PlaceholderColor3 = FromRGB(185, 185, 185),
-                AutomaticSize = Enum.AutomaticSize.X,
-                PlaceholderText = "..",
+                PlaceholderText = "search..",
                 TextSize = 9,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })  Items["Input"]:AddToTheme({TextColor3 = "Text", PlaceholderColor3 = "Placeholder Text"})
@@ -5421,16 +5407,48 @@ local Library do
                 SortOrder = Enum.SortOrder.LayoutOrder
             })
 
+            local ProfileName = tostring((LocalPlayer.DisplayName ~= nil and LocalPlayer.DisplayName ~= "" and LocalPlayer.DisplayName) or LocalPlayer.Name)
             local Content, _ = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
 
-            Items["Avatar"] = Instances:Create("ImageLabel", {
+            Items["Profile"] = Instances:Create("Frame", {
                 Parent = Items["Side"].Instance,
                 Name = "\0",
                 BorderColor3 = FromRGB(0, 0, 0),
                 AnchorPoint = Vector2New(1, 1),
-                Image = Content,
                 BackgroundTransparency = 1,
                 Position = UDim2New(1, -6, 1, -6),
+                Size = UDim2New(0, 88, 0, 25),
+                BorderSizePixel = 0,
+                BackgroundColor3 = FromRGB(255, 255, 255)
+            })
+
+            Items["ProfileName"] = Instances:Create("TextLabel", {
+                Parent = Items["Profile"].Instance,
+                Name = "\0",
+                FontFace = Library.Font,
+                TextColor3 = FromRGB(235, 235, 235),
+                BorderColor3 = FromRGB(0, 0, 0),
+                Text = ProfileName,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                BackgroundTransparency = 1,
+                Position = UDim2New(0, 0, 0, 0),
+                Size = UDim2New(1, -31, 1, 0),
+                BorderSizePixel = 0,
+                TextSize = 9,
+                BackgroundColor3 = FromRGB(255, 255, 255)
+            })  Items["ProfileName"]:AddToTheme({TextColor3 = "Text"})
+
+            Items["ProfileName"]:TextBorder()
+
+            Items["Avatar"] = Instances:Create("ImageLabel", {
+                Parent = Items["Profile"].Instance,
+                Name = "\0",
+                BorderColor3 = FromRGB(0, 0, 0),
+                AnchorPoint = Vector2New(1, 0.5),
+                Image = Content,
+                BackgroundTransparency = 1,
+                Position = UDim2New(1, 0, 0.5, 0),
                 Size = UDim2New(0, 25, 0, 25),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
@@ -5591,43 +5609,45 @@ local Library do
             end
         end)
 
-        local SearchStepped
-
-        Items["Input"]:Connect("Focused", function()
+        function Window:UpdateSearch()
+            local SearchText = StringLower(Items["Input"].Instance.Text or "")
             local PageSearchData = Library.SearchItems[Library.CurrentPage]
 
             if not PageSearchData then
-                return 
+                return
             end
 
-            SearchStepped = RunService.RenderStepped:Connect(function()
-                for Index, Value in PageSearchData do 
-                    local Name = Value.Name
-                    local Element = Value.Element
+            for _, Value in PageSearchData do
+                local Element = Value.Element
+                local Name = StringLower(tostring(Value.Name or ""))
 
-                    if StringFind(StringLower(Name), StringLower(Items["Input"].Instance.Text)) then
-                        if Items["Input"].Instance.Text ~= "" then 
-                            Element.Instance.Visible  = true 
-                            Element:Tween(TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = Window:GetOldSize(Element)})
-                        else
-                            Element.Instance.Visible  = true 
-                            Element:Tween(TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = Window:GetOldSize(Element)})
+                Window:AddToOldSizes(Element, Element.Instance.Size)
+
+                local Matches = SearchText == "" or StringFind(Name, SearchText, 1, true)
+                if Matches then
+                    Element.Instance.Visible = true
+                    Element:Tween(TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = Window:GetOldSize(Element)})
+                else
+                    local OldSize = Window:GetOldSize(Element)
+                    Element:Tween(TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2New(OldSize.X.Scale, OldSize.X.Offset, 0, 0)})
+                    task.delay(0.1, function()
+                        local CurrentSearchText = StringLower(Items["Input"].Instance.Text or "")
+                        local StillMatches = CurrentSearchText == "" or StringFind(Name, CurrentSearchText, 1, true)
+
+                        if Element.Instance and not StillMatches then
+                            Element.Instance.Visible = false
                         end
-                    else
-                        Window:AddToOldSizes(Element, Element.Instance.Size)
-                        Element:Tween(TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2New(Window:GetOldSize(Element).X.Scale, Window:GetOldSize(Element).X.Offset, 0, 0)})
-                        task.wait(0.1)
-                        Element.Instance.Visible = false
-                    end
+                    end)
                 end
-            end)
+            end
+        end
+
+        Items["Input"]:Connect("Focused", function()
+            Window:UpdateSearch()
         end)
 
-        Items["Input"]:Connect("FocusLost", function()
-            if SearchStepped then 
-                SearchStepped:Disconnect()
-                SearchStepped = nil
-            end
+        Library:Connect(Items["Input"].Instance:GetPropertyChangedSignal("Text"), function()
+            Window:UpdateSearch()
         end)
 
         Window:SetOpen(true)
@@ -6781,37 +6801,13 @@ function Library.new(settings)
 
     Library.MenuKeybind = Library:NormalizeKeybindValue(compat_pick(settings, {"menu_keybind", "MenuKeybind"}, nil))
 
-    local compatTabMode = compat_pick(settings, {
-        "tab_mode",
-        "TabMode",
-        "tabs_in_settings",
-        "TabsInSettings",
-        "top_tabs",
-        "TopTabs"
-    }, false)
-
-    if compatTabMode == true then
-        compatTabMode = "settings_subpages"
-    end
-
-    local compatModuleTabs = compat_pick(settings, {
-        "module_tabs",
-        "ModuleTabs",
-        "module_subpages",
-        "ModuleSubPages",
-        "modules_like_settings",
-        "ModulesLikeSettings"
-    }, true)
-
     local root = setmetatable({
         _window = Library:Window({
             Logo = compat_pick(settings, {"logo", "Logo"}, "107678529986814"),
             FadeTime = compat_pick(settings, {"fade_time", "FadeTime", "fadeTime"}, 0.3),
             Size = compat_pick(settings, {"size", "Size"}, nil)
         }),
-        Flags = Library.Flags,
-        _compat_tab_mode = compatTabMode,
-        _compat_module_tabs = compatModuleTabs
+        Flags = Library.Flags
     }, CompatRoot)
 
     if compat_pick(settings, {"watermark", "Watermark"}, true) then
@@ -6831,42 +6827,16 @@ function Library.new(settings)
 end
 
 function CompatRoot:create_tab(title, icon)
-    local page
-    local tabMode = tostring(self._compat_tab_mode or "")
-    local canHostModuleTabs = false
-
-    if tabMode == "settings_subpages" or tabMode == "top" then
-        local hostPage = self._settings_page
-
-        if not hostPage then
-            hostPage = self._window:Page({
-                Name = "Settings",
-                SubPages = true
-            })
-
-            self._settings_page = hostPage
-        end
-
-        page = hostPage:SubPage({
-            Name = title or "Tab",
-            Columns = 2
-        })
-    else
-        page = self._window:Page({
-            Name = title or "Tab",
-            Columns = 2,
-            SubPages = self._compat_module_tabs and true or false
-        })
-
-        canHostModuleTabs = self._compat_module_tabs and true or false
-    end
+    local page = self._window:Page({
+        Name = title or "Tab",
+        Columns = 2
+    })
 
     return setmetatable({
         _root = self,
         _page = page,
         _title = title,
-        _icon = icon,
-        _module_tabs = canHostModuleTabs
+        _icon = icon
     }, CompatTab)
 end
 
@@ -6890,31 +6860,14 @@ function CompatTab:create_module(settings)
     local sectionSide = compat_pick(settings, {"section", "Section", "side", "Side"}, "left")
     local side = (sectionSide == "right" or sectionSide == 2) and 2 or 1
     local moduleFlag = compat_flag(settings)
-    local moduleTitle = compat_title(settings, "Module")
-    local moduleTabTitle = compat_pick(settings, {"tab_title", "TabTitle", "subpage_name", "SubPageName"}, moduleTitle)
-    local section
-    local hostPage = self._page
 
-    if self._module_tabs then
-        hostPage = self._page:SubPage({
-            Name = moduleTabTitle,
-            Columns = compat_pick(settings, {"columns", "Columns"}, 2)
-        })
-
-        section = hostPage:Section({
-            Name = compat_pick(settings, {"section_title", "SectionTitle", "body_title", "BodyTitle"}, moduleTitle),
-            Side = 1
-        })
-    else
-        section = self._page:Section({
-            Name = moduleTitle,
-            Side = side
-        })
-    end
+    local section = self._page:Section({
+        Name = compat_title(settings, "Module"),
+        Side = side
+    })
 
     local module = setmetatable({
         _tab = self,
-        _page = hostPage,
         _section = section,
         _flag = moduleFlag,
         _state = false,
@@ -7544,408 +7497,6 @@ do
 end
 
 Library:Notification("Loaded!", "Menu took "..string.format("%.4f", os.clock() - LoadTick).." seconds to load", 5)
-end
-
-if false then
-local demo = Library.new({
-    watermark = true,
-    watermark_text = "REVERSE",
-    keybind_list = true,
-    settings_page = true,
-    module_tabs = true,
-    menu_keybind = "None",
-    fade_time = 0
-})
-
-local function demo_callback(flag)
-    return function(value)
-        print(flag, value)
-    end
-end
-
-local mode_options = {"Remote", "Keypress"}
-local curve_options = {"--", "Camera", "Random", "Backwards", "Straight", "High", "Left", "Right", "Random Target"}
-
-local autoparry = demo:create_tab("Autoparry", "rbxassetid://76499042599127")
-local detection = demo:create_tab("Detection", "rbxassetid://10734951847")
-local spam = demo:create_tab("Spam", "rbxassetid://10709781460")
-local player = demo:create_tab("Player", "rbxassetid://126017907477623")
-local visuals = demo:create_tab("Visuals", "rbxassetid://10723346959")
-local misc = demo:create_tab("Misc", "rbxassetid://132243429647479")
-local gui = demo:create_tab("Gui", "rbxassetid://10734887784")
-
-local autoparry_module = autoparry:create_module({
-    title = "Auto Parry",
-    flag = "DemoAutoParry",
-    description = "Automatically parries ball",
-    section = "left",
-    callback = demo_callback("DemoAutoParry")
-})
-
-autoparry_module:create_dropdown({
-    title = "Parry Mode",
-    flag = "DemoParryMode",
-    options = mode_options,
-    default = "Remote",
-    callback = demo_callback("DemoParryMode")
-})
-
-autoparry_module:create_dropdown({
-    title = "AutoCurve",
-    flag = "DemoAutoCurve",
-    options = curve_options,
-    default = "--",
-    callback = demo_callback("DemoAutoCurve")
-})
-
-autoparry_module:create_slider({
-    title = "Parry Accuracy",
-    flag = "DemoParryAccuracy",
-    minimum_value = 1,
-    maximum_value = 100,
-    value = 50,
-    round_number = true,
-    callback = demo_callback("DemoParryAccuracy")
-})
-
-autoparry_module:create_checkbox({
-    title = "Play Animation",
-    flag = "DemoPlayAnimation",
-    callback = demo_callback("DemoPlayAnimation")
-})
-
-autoparry_module:create_divider({})
-
-autoparry_module:create_checkbox({
-    title = "Notify",
-    flag = "DemoAutoParryNotify",
-    callback = demo_callback("DemoAutoParryNotify")
-})
-
-autoparry_module:create_checkbox({
-    title = "Cooldown Protection",
-    flag = "DemoCooldownProtection",
-    callback = demo_callback("DemoCooldownProtection")
-})
-
-autoparry_module:create_checkbox({
-    title = "Auto Ability",
-    flag = "DemoAutoAbility",
-    callback = demo_callback("DemoAutoAbility")
-})
-
-local hotkey_module = autoparry:create_module({
-    title = "Auto Curve",
-    flag = "DemoAutoCurveHotkey",
-    description = "Press 1-8 to change curve",
-    section = "right",
-    callback = demo_callback("DemoAutoCurveHotkey")
-})
-
-hotkey_module:create_checkbox({
-    title = "Notify",
-    flag = "DemoAutoCurveHotkeyNotify",
-    callback = demo_callback("DemoAutoCurveHotkeyNotify")
-})
-
-detection:create_module({
-    title = "Infinity",
-    flag = "DemoInfinityDetection",
-    description = "",
-    section = "left",
-    callback = demo_callback("DemoInfinityDetection")
-})
-
-detection:create_module({
-    title = "Death Slash",
-    flag = "DemoDeathSlashDetection",
-    description = "",
-    section = "right",
-    callback = demo_callback("DemoDeathSlashDetection")
-})
-
-detection:create_module({
-    title = "Time Hole",
-    flag = "DemoTimeHoleDetection",
-    description = "",
-    section = "left",
-    callback = demo_callback("DemoTimeHoleDetection")
-})
-
-local slashes_module = detection:create_module({
-    title = "Slashes Fury",
-    flag = "DemoSlashesOfFury",
-    description = "",
-    section = "right",
-    callback = demo_callback("DemoSlashesOfFury")
-})
-
-slashes_module:create_slider({
-    title = "Parry Delay",
-    flag = "DemoParryDelay",
-    minimum_value = 0.05,
-    maximum_value = 0.25,
-    value = 0.05,
-    decimals = 0.01,
-    callback = demo_callback("DemoParryDelay")
-})
-
-slashes_module:create_slider({
-    title = "Max Parry Count",
-    flag = "DemoMaxParryCount",
-    minimum_value = 1,
-    maximum_value = 36,
-    value = 36,
-    round_number = true,
-    callback = demo_callback("DemoMaxParryCount")
-})
-
-detection:create_module({
-    title = "Anti-Phantom",
-    flag = "DemoAntiPhantom",
-    description = "",
-    section = "left",
-    callback = demo_callback("DemoAntiPhantom")
-})
-
-local manual_spam = spam:create_module({
-    title = "Manual Spam",
-    flag = "DemoManualSpam",
-    description = "High-frequency parry spam",
-    section = "left",
-    callback = demo_callback("DemoManualSpam")
-})
-
-manual_spam:create_checkbox({
-    title = "Notify",
-    flag = "DemoManualSpamNotify",
-    callback = demo_callback("DemoManualSpamNotify")
-})
-
-manual_spam:create_dropdown({
-    title = "Mode",
-    flag = "DemoManualSpamMode",
-    options = mode_options,
-    default = "Remote",
-    callback = demo_callback("DemoManualSpamMode")
-})
-
-manual_spam:create_checkbox({
-    title = "Animation Fix",
-    flag = "DemoManualSpamAnimationFix",
-    callback = demo_callback("DemoManualSpamAnimationFix")
-})
-
-manual_spam:create_slider({
-    title = "Spam Rate",
-    flag = "DemoSpamRate",
-    minimum_value = 60,
-    maximum_value = 5000,
-    value = 240,
-    round_number = true,
-    callback = demo_callback("DemoSpamRate")
-})
-
-local auto_spam = spam:create_module({
-    title = "Auto Spam",
-    flag = "DemoAutoSpam",
-    description = "Automatically spam parries ball",
-    section = "right",
-    callback = demo_callback("DemoAutoSpam")
-})
-
-auto_spam:create_checkbox({
-    title = "Notify",
-    flag = "DemoAutoSpamNotify",
-    callback = demo_callback("DemoAutoSpamNotify")
-})
-
-auto_spam:create_dropdown({
-    title = "Mode",
-    flag = "DemoAutoSpamMode",
-    options = mode_options,
-    default = "Remote",
-    callback = demo_callback("DemoAutoSpamMode")
-})
-
-auto_spam:create_checkbox({
-    title = "Animation Fix",
-    flag = "DemoAutoSpamAnimationFix",
-    callback = demo_callback("DemoAutoSpamAnimationFix")
-})
-
-auto_spam:create_slider({
-    title = "Parry Threshold",
-    flag = "DemoParryThreshold",
-    minimum_value = 1,
-    maximum_value = 5,
-    value = 2.5,
-    decimals = 0.1,
-    callback = demo_callback("DemoParryThreshold")
-})
-
-local movement_module = player:create_module({
-    title = "Movement",
-    flag = "DemoMovement",
-    description = "Player movement helpers",
-    section = "left",
-    callback = demo_callback("DemoMovement")
-})
-
-movement_module:create_slider({
-    title = "WalkSpeed",
-    flag = "DemoWalkSpeed",
-    minimum_value = 16,
-    maximum_value = 100,
-    value = 16,
-    round_number = true,
-    callback = demo_callback("DemoWalkSpeed")
-})
-
-movement_module:create_slider({
-    title = "JumpPower",
-    flag = "DemoJumpPower",
-    minimum_value = 50,
-    maximum_value = 150,
-    value = 50,
-    round_number = true,
-    callback = demo_callback("DemoJumpPower")
-})
-
-movement_module:create_checkbox({
-    title = "No Clip",
-    flag = "DemoNoClip",
-    callback = demo_callback("DemoNoClip")
-})
-
-local camera_module = player:create_module({
-    title = "Camera",
-    flag = "DemoCameraTweaks",
-    description = "Local camera tweaks",
-    section = "right",
-    callback = demo_callback("DemoCameraTweaks")
-})
-
-camera_module:create_slider({
-    title = "Field Of View",
-    flag = "DemoFieldOfView",
-    minimum_value = 70,
-    maximum_value = 120,
-    value = 80,
-    round_number = true,
-    callback = demo_callback("DemoFieldOfView")
-})
-
-camera_module:create_checkbox({
-    title = "Unlock Zoom",
-    flag = "DemoUnlockZoom",
-    callback = demo_callback("DemoUnlockZoom")
-})
-
-local ball_visuals = visuals:create_module({
-    title = "Ball Visuals",
-    flag = "DemoBallVisuals",
-    description = "Ball ESP and highlight options",
-    section = "left",
-    callback = demo_callback("DemoBallVisuals")
-})
-
-ball_visuals:create_checkbox({
-    title = "Highlight Ball",
-    flag = "DemoHighlightBall",
-    callback = demo_callback("DemoHighlightBall")
-})
-
-ball_visuals:create_checkbox({
-    title = "Trail",
-    flag = "DemoBallTrail",
-    callback = demo_callback("DemoBallTrail")
-})
-
-ball_visuals:create_slider({
-    title = "Trail Thickness",
-    flag = "DemoTrailThickness",
-    minimum_value = 1,
-    maximum_value = 10,
-    value = 3,
-    round_number = true,
-    callback = demo_callback("DemoTrailThickness")
-})
-
-local world_visuals = visuals:create_module({
-    title = "World Visuals",
-    flag = "DemoWorldVisuals",
-    description = "World cleanup and styling",
-    section = "right",
-    callback = demo_callback("DemoWorldVisuals")
-})
-
-world_visuals:create_checkbox({
-    title = "Remove Fog",
-    flag = "DemoRemoveFog",
-    callback = demo_callback("DemoRemoveFog")
-})
-
-world_visuals:create_checkbox({
-    title = "Full Bright",
-    flag = "DemoFullBright",
-    callback = demo_callback("DemoFullBright")
-})
-
-local misc_module = misc:create_module({
-    title = "Helpers",
-    flag = "DemoHelpers",
-    description = "Utility actions and toggles",
-    section = "left",
-    callback = demo_callback("DemoHelpers")
-})
-
-misc_module:create_checkbox({
-    title = "Auto Vote",
-    flag = "DemoAutoVote",
-    callback = demo_callback("DemoAutoVote")
-})
-
-misc_module:create_checkbox({
-    title = "Auto Rejoin",
-    flag = "DemoAutoRejoin",
-    callback = demo_callback("DemoAutoRejoin")
-})
-
-misc_module:create_button({
-    title = "Send Test Notification",
-    callback = function()
-        demo:SendNotification({
-            title = "Reverse Demo",
-            text = "This is a compatibility example.",
-            duration = 3
-        })
-    end
-})
-
-local gui_module = gui:create_module({
-    title = "GUI",
-    flag = "DemoGui",
-    description = "Extra GUI-only example options",
-    section = "left",
-    callback = demo_callback("DemoGui")
-})
-
-gui_module:create_checkbox({
-    title = "Toggle Notifications",
-    flag = "DemoGuiNotifications",
-    callback = demo_callback("DemoGuiNotifications")
-})
-
-gui_module:create_slider({
-    title = "Menu Fade Time",
-    flag = "DemoMenuFadeTime",
-    minimum_value = 0,
-    maximum_value = 1,
-    value = 0.2,
-    decimals = 0.05,
-    callback = demo_callback("DemoMenuFadeTime")
-})
 end
 
 getgenv().Library = Library

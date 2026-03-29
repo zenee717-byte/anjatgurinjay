@@ -5291,8 +5291,8 @@ local Library do
                 AnchorPoint = Vector2New(0.5, 0),
                 Image = Library:ResolveAsset(Window.Logo),
                 BackgroundTransparency = 1,
-                Position = UDim2New(0.5, 0, 0, 12),
-                Size = UDim2New(0, 84, 0, 84),
+                Position = UDim2New(0.5, 0, 0, 16),
+                Size = UDim2New(1, -24, 0, 64),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })  Items["Logo"]:AddToTheme({ImageColor3 = "Accent"})
@@ -5372,9 +5372,9 @@ local Library do
                 Parent = Items["Side"].Instance,
                 Name = "\0",
                 BackgroundTransparency = 1,
-                Position = UDim2New(0, 0, 0, 108),
+                Position = UDim2New(0, 0, 0, 92),
                 BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(1, 0, 1, -143),
+                Size = UDim2New(1, 0, 1, -127),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })

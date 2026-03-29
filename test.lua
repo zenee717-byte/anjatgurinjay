@@ -2370,7 +2370,7 @@ local Library do
                 Items["RealSlider"]:Tween(nil, {BackgroundColor3 = Library.Theme["Element"]})
             end)
 
-            if Data.Default then 
+            if Data.Default ~= nil then 
                 Slider:Set(Data.Default)
             end
 
@@ -2863,7 +2863,7 @@ local Library do
                 Dropdown:Add(Value)
             end
 
-            if Data.Default then 
+            if Data.Default ~= nil then 
                 Dropdown:Set(Data.Default)
             end
 
@@ -4644,7 +4644,7 @@ local Library do
                 end)
             end
 
-            if Data.Default then
+            if Data.Default ~= nil then
                 Textbox:Set(Data.Default)
             end
 
@@ -4999,7 +4999,7 @@ local Library do
                 Dropdown:Add(Value)
             end
 
-            if Data.Default then 
+            if Data.Default ~= nil then 
                 Dropdown:Set(Data.Default)
             end
 
@@ -6852,6 +6852,39 @@ local function compat_flag(settings, fallback)
     return explicit or fallback or Library:NextFlag()
 end
 
+local function compat_infer_slider_step(...)
+    local step
+
+    for _, value in ipairs({...}) do
+        if type(value) == "number" and value ~= math.floor(value) then
+            local formatted = string.format("%.6f", value):gsub("0+$", ""):gsub("%.$", "")
+            local decimals = formatted:match("%.(%d+)")
+
+            if decimals then
+                local candidate = 10 ^ (-#decimals)
+                if not step or candidate < step then
+                    step = candidate
+                end
+            end
+        end
+    end
+
+    return step or 1
+end
+
+local function compat_slider_step(settings, minimum, maximum, defaultValue)
+    local explicit = compat_pick(settings, {"decimals", "Decimals"}, nil)
+    if explicit ~= nil then
+        return explicit
+    end
+
+    if compat_pick(settings, {"round_number", "RoundNumber"}, false) then
+        return compat_infer_slider_step(minimum, maximum, defaultValue)
+    end
+
+    return 0.1
+end
+
 local function compat_enum_input(value)
     if value == nil then
         return Enum.KeyCode.Backspace
@@ -7552,14 +7585,15 @@ function CompatModule:create_slider(settings)
     local wrapper
     local minimum = compat_pick(settings, {"minimum_value", "MinimumValue", "min", "Min"}, 0)
     local maximum = compat_pick(settings, {"maximum_value", "MaximumValue", "max", "Max"}, 100)
+    local defaultValue = compat_pick(settings, {"value", "Value", "default", "Default"}, minimum)
     local callback = compat_pick(settings, {"callback", "Callback"}, function() end)
     local raw = self._section:Slider({
         Name = compat_title(settings, "Slider"),
         Flag = compat_flag(settings),
         Min = minimum,
         Max = maximum,
-        Default = compat_pick(settings, {"value", "Value", "default", "Default"}, minimum),
-        Decimals = compat_pick(settings, {"decimals", "Decimals"}, compat_pick(settings, {"round_number", "RoundNumber"}, false) and 1 or 0.1),
+        Default = defaultValue,
+        Decimals = compat_slider_step(settings, minimum, maximum, defaultValue),
         Suffix = compat_pick(settings, {"suffix", "Suffix"}, ""),
         Callback = function(value)
             if wrapper then

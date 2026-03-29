@@ -3844,18 +3844,30 @@ local Library do
                 end
             end
 
+            local function ResolveKeybindDisplay(Key)
+                local NormalizedKey = Library:NormalizeKeybindValue(Key)
+
+                if NormalizedKey == "None" then
+                    return "None", "None"
+                end
+
+                local DisplayKey = StringGSub(NormalizedKey, "Enum%.KeyCode%.", "")
+                DisplayKey = StringGSub(DisplayKey, "Enum%.UserInputType%.", "")
+                DisplayKey = StringGSub(DisplayKey, "KeyCode%.", "")
+                DisplayKey = StringGSub(DisplayKey, "UserInputType%.", "")
+
+                return NormalizedKey, Keys[DisplayKey] or DisplayKey
+            end
+
             function Keybind:Get()
                 return Keybind.Key, Keybind.Mode, Keybind.Toggled
             end
 
             function Keybind:Set(Key)
                 if StringFind(tostring(Key), "Enum") then 
-                    Keybind.Key = tostring(Key)
+                    local NormalizedKey, TextToDisplay = ResolveKeybindDisplay(Key)
 
-                    Key = Key.Name == "Backspace" and "None" or Key.Name
-
-                    local KeyString = Keys[Keybind.Key] or StringGSub(Key, "Enum.", "") or "None"
-                    local TextToDisplay = StringGSub(StringGSub(KeyString, "KeyCode.", ""), "UserInputType.", "") or "None"
+                    Keybind.Key = NormalizedKey
 
                     Keybind.Value = TextToDisplay
                     Items["KeyButton"].Instance.Text = TextToDisplay
@@ -3872,8 +3884,8 @@ local Library do
 
                     Update()
                 elseif type(Key) == "table" then
-                    local RealKey = Key.Key == "Backspace" and "None" or Key.Key
-                    Keybind.Key = tostring(Key.Key)
+                    local NormalizedKey, TextToDisplay = ResolveKeybindDisplay(Key.Key)
+                    Keybind.Key = NormalizedKey
 
                     if Key.Mode then
                         Keybind.Mode = Key.Mode
@@ -3882,11 +3894,6 @@ local Library do
                         Keybind.Mode = "Toggle"
                         Keybind:SetMode("Toggle")
                     end
-
-                    local KeyString = Keys[Keybind.Key] or StringGSub(tostring(RealKey), "Enum.", "") or RealKey
-                    local TextToDisplay = KeyString and StringGSub(StringGSub(KeyString, "KeyCode.", ""), "UserInputType.", "") or "None"
-
-                    TextToDisplay = StringGSub(StringGSub(KeyString, "KeyCode.", ""), "UserInputType.", "")
 
                     Keybind.Value = TextToDisplay
                     Items["KeyButton"].Instance.Text = TextToDisplay
@@ -5393,6 +5400,7 @@ local Library do
                 Size = UDim2New(0, 16, 0, 16),
                 BorderSizePixel = 0,
                 ZIndex = 9999,
+                Visible = false,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })
 
@@ -5415,7 +5423,7 @@ local Library do
                 Color = RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, FromRGB(99, 108, 117))}
             })
 
-            UserInputService.MouseIconEnabled = false
+            UserInputService.MouseIconEnabled = true
 
             Window.Items = Items
         end
@@ -5443,6 +5451,10 @@ local Library do
         end)
 
         Library:Connect(RunService.RenderStepped, function()
+            if not Items["MouseBackground"].Instance.Visible then
+                return
+            end
+
             local MouseLocation = UserInputService:GetMouseLocation() 
             Items["MouseBackground"].Instance.Position = UDim2New(0, MouseLocation.X - 1, 0, MouseLocation.Y - 56)           
         end)
@@ -5498,13 +5510,8 @@ local Library do
             NewTween.Tween.Completed:Connect(function()
                 Debounce = false 
                 Items["Window"].Instance.Visible = Window.IsOpen
-                if Window.IsOpen then
-                    Items["MouseBackground"].Instance.Visible = true
-                    UserInputService.MouseIconEnabled = false
-                else
-                    Items["MouseBackground"].Instance.Visible = false
-                    UserInputService.MouseIconEnabled = true
-                end
+                Items["MouseBackground"].Instance.Visible = false
+                UserInputService.MouseIconEnabled = true
             end)
         end
 

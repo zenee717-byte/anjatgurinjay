@@ -131,6 +131,9 @@ local Library do
 
         Colorpickers = { },
 
+        FlagMetadata = { },
+        FlagRegistrationCounter = 0,
+
         PendingConfigData = nil,
         PendingConfigName = nil,
         ApplyingPendingConfig = false,
@@ -143,6 +146,7 @@ local Library do
     setmetatable(Library.SetFlags, {
         __newindex = function(self, Index, Value)
             rawset(self, Index, Value)
+            Library:RegisterFlag(Index)
 
             if type(Value) == "function" and not Library.ApplyingPendingConfig then
                 Library:ApplyPendingConfigFlag(Index)
@@ -827,6 +831,42 @@ local Library do
         return StringFormat("flag_number_%s_%s", FlagNumber, HttpService:GenerateGUID(false))
     end
 
+    Library.RegisterFlag = function(self, Flag, Metadata)
+        if type(Flag) ~= "string" or Flag == "" then
+            return nil
+        end
+
+        local Existing = Library.FlagMetadata[Flag]
+
+        if not Existing then
+            Library.FlagRegistrationCounter += 1
+
+            Existing = {
+                order = Library.FlagRegistrationCounter,
+                load_priority = 0
+            }
+
+            Library.FlagMetadata[Flag] = Existing
+        end
+
+        if type(Metadata) == "table" then
+            for Index, Value in Metadata do
+                Existing[Index] = Value
+            end
+        end
+
+        return Existing
+    end
+
+    Library.SetFlagLoadPriority = function(self, Flag, Priority, Kind)
+        local Metadata = Library:RegisterFlag(Flag, {
+            load_priority = Priority or 0,
+            kind = Kind
+        })
+
+        return Metadata
+    end
+
     Library.NormalizeKeybindValue = function(self, Key)
         if type(Key) == "table" then
             Key = Key.Key or Key.key
@@ -1044,9 +1084,37 @@ local Library do
         local Success, Result = Library:SafeCall(function()
             Library.ApplyingPendingConfig = true
             local LoadedFlags = { }
+            local OrderedFlags = { }
 
-            for Index, Value in Library.PendingConfigData do
-                if Library:ApplyConfigValue(Index, Value) then
+            for Index in Library.PendingConfigData do
+                TableInsert(OrderedFlags, Index)
+            end
+
+            table.sort(OrderedFlags, function(Left, Right)
+                local LeftMeta = Library.FlagMetadata[Left] or { }
+                local RightMeta = Library.FlagMetadata[Right] or { }
+
+                local LeftPriority = LeftMeta.load_priority or 0
+                local RightPriority = RightMeta.load_priority or 0
+
+                if LeftPriority ~= RightPriority then
+                    return LeftPriority < RightPriority
+                end
+
+                local LeftOrder = LeftMeta.order or math.huge
+                local RightOrder = RightMeta.order or math.huge
+
+                if LeftOrder ~= RightOrder then
+                    return LeftOrder < RightOrder
+                end
+
+                return tostring(Left) < tostring(Right)
+            end)
+
+            for _, Index in OrderedFlags do
+                local Value = Library.PendingConfigData[Index]
+
+                if Value ~= nil and Library:ApplyConfigValue(Index, Value) then
                     TableInsert(LoadedFlags, Index)
                 end
             end
@@ -1901,8 +1969,13 @@ local Library do
             end
 
             function Toggle:Set(Value)
+                local Changed = Toggle.Value ~= Value
                 Toggle.Value = Value 
                 Library.Flags[Toggle.Flag] = Value 
+
+                if not Changed then
+                    return
+                end
 
                 if Toggle.Value then
                     Items["Indicator"]:ChangeItemTheme({BackgroundColor3 = "Accent", BorderColor3 = "Border"})
@@ -7264,6 +7337,7 @@ function CompatTab:create_module(settings)
 
     module._toggle = compat_wrap_toggle(stateToggle)
     module._state = module._toggle:Get()
+    Library:SetFlagLoadPriority(moduleFlag, 100, "module_toggle")
 
     do
         local initialized = false

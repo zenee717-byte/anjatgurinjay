@@ -89,6 +89,10 @@ local Library do
             Assets = "reverse/Assets",
         },
 
+        Files = {
+            Autoload = "reverse/autoload.json"
+        },
+
         Images = {
             ["Saturation"] = {"Saturation.png", "https://github.com/sametexe001/images/blob/main/saturation.png?raw=true" },
             ["Value"] = { "Value.png", "https://github.com/sametexe001/images/blob/main/value.png?raw=true" },
@@ -126,11 +130,24 @@ local Library do
         KeyList = nil,
 
         Colorpickers = { },
+
+        PendingConfigData = nil,
+        PendingConfigName = nil,
     }
 
     Library.__index = Library
     Library.Sections.__index = Library.Sections
     Library.Pages.__index = Library.Pages
+
+    setmetatable(Library.SetFlags, {
+        __newindex = function(self, Index, Value)
+            rawset(self, Index, Value)
+
+            if type(Value) == "function" then
+                Library:ApplyPendingConfigFlag(Index)
+            end
+        end
+    })
 
     local Keys = {
         ["Unknown"]           = "Unknown",
@@ -915,6 +932,131 @@ local Library do
         return Library.Folders.Configs .. "/" .. ConfigName .. ".json", ConfigName
     end
 
+    Library.GetAutoloadPath = function(self)
+        return Library.Files.Autoload
+    end
+
+    Library.GetAutoloadConfig = function(self)
+        local AutoloadPath = Library:GetAutoloadPath()
+
+        if not isfile(AutoloadPath) then
+            return nil
+        end
+
+        local Success, Result = Library:SafeCall(function()
+            local FileContent = readfile(AutoloadPath)
+            local Decoded = HttpService:JSONDecode(FileContent)
+
+            if type(Decoded) == "table" then
+                return Decoded.Config or Decoded.Name or Decoded.config or Decoded.name
+            end
+
+            return Decoded
+        end)
+
+        if Success then
+            return Library:NormalizeConfigName(Result)
+        end
+
+        return Library:NormalizeConfigName(readfile(AutoloadPath))
+    end
+
+    Library.SetAutoloadConfig = function(self, Config)
+        local ConfigName = Library:NormalizeConfigName(Config)
+
+        if not ConfigName then
+            return false, "invalid config name"
+        end
+
+        local ConfigPath = Library:GetConfigPath(ConfigName)
+
+        if not ConfigPath or not isfile(ConfigPath) then
+            return false, "config not found"
+        end
+
+        local Success, Result = Library:SafeCall(function()
+            writefile(Library:GetAutoloadPath(), HttpService:JSONEncode({
+                Config = ConfigName
+            }))
+        end)
+
+        if not Success then
+            return false, Result
+        end
+
+        return true, ConfigName
+    end
+
+    Library.ClearAutoloadConfig = function(self)
+        local AutoloadPath = Library:GetAutoloadPath()
+
+        if isfile(AutoloadPath) then
+            delfile(AutoloadPath)
+        end
+    end
+
+    Library.ApplyConfigValue = function(self, Index, Value)
+        local SetFunction = Library.SetFlags[Index]
+
+        if not SetFunction then
+            return false
+        end
+
+        if type(Value) == "table" and Value.Key then 
+            SetFunction(Value)
+        elseif type(Value) == "table" and Value.Color then
+            SetFunction(Value.Color, Value.Alpha)
+        else
+            SetFunction(Value)
+        end
+
+        return true
+    end
+
+    Library.ApplyPendingConfigFlag = function(self, Flag)
+        if not Library.PendingConfigData or not Library.PendingConfigData[Flag] then
+            return true
+        end
+
+        local Success, Result = Library:SafeCall(function()
+            if Library:ApplyConfigValue(Flag, Library.PendingConfigData[Flag]) then
+                Library.PendingConfigData[Flag] = nil
+
+                if not next(Library.PendingConfigData) then
+                    Library.PendingConfigData = nil
+                end
+            end
+        end)
+
+        return Success, Result
+    end
+
+    Library.ApplyPendingConfig = function(self)
+        if type(Library.PendingConfigData) ~= "table" then
+            return true
+        end
+
+        local Success, Result = Library:SafeCall(function()
+            local LoadedFlags = { }
+
+            for Index, Value in Library.PendingConfigData do
+                if Library:ApplyConfigValue(Index, Value) then
+                    TableInsert(LoadedFlags, Index)
+                end
+            end
+
+            for _, Flag in LoadedFlags do
+                Library.PendingConfigData[Flag] = nil
+            end
+
+            if not next(Library.PendingConfigData) then
+                Library.PendingConfigData = nil
+            end
+        end)
+
+        return Success, Result
+    end
+
     Library.GetConfig = function(self)
         local Config = { } 
 
@@ -948,32 +1090,83 @@ local Library do
             return false, Decoded
         end
 
-        local Success, Result = Library:SafeCall(function()
-            for Index, Value in Decoded do 
-                local SetFunction = Library.SetFlags[Index]
+        if type(Decoded) ~= "table" then
+            return false, "invalid config format"
+        end
 
-                if not SetFunction then
-                    continue
-                end
+        Library.PendingConfigData = TableClone(Decoded)
 
-                if type(Value) == "table" and Value.Key then 
-                    SetFunction(Value)
-                elseif type(Value) == "table" and Value.Color then
-                    SetFunction(Value.Color, Value.Alpha)
-                else
-                    SetFunction(Value)
-                end
-            end
-        end)
+        local Success, Result = Library:ApplyPendingConfig()
 
         return Success, Result
     end
 
+    Library.LoadConfigByName = function(self, Config, SkipNotification)
+        local ConfigPath, ConfigName = Library:GetConfigPath(Config)
+
+        if not ConfigPath or not ConfigName then
+            return false, "invalid config name"
+        end
+
+        if not isfile(ConfigPath) then
+            return false, "config "..ConfigName .. " was not found"
+        end
+
+        local Success, Result = Library:LoadConfig(readfile(ConfigPath))
+
+        if Success then
+            Library.PendingConfigName = ConfigName
+        end
+
+        if Success and not SkipNotification then
+            Library:Notification("Success", "Loaded config "..ConfigName .. " succesfully", 5)
+        elseif not Success and not SkipNotification then
+            Library:Notification("Error", "Failed to load config "..ConfigName .. ":\n"..tostring(Result), 5)
+        end
+
+        return Success, Result, ConfigName
+    end
+
+    Library.LoadAutoloadConfig = function(self, SkipNotification)
+        local ConfigName = Library:GetAutoloadConfig()
+
+        if not ConfigName then
+            return false, "autoload is not set"
+        end
+
+        local ConfigPath = Library:GetConfigPath(ConfigName)
+
+        if not ConfigPath or not isfile(ConfigPath) then
+            Library:ClearAutoloadConfig()
+            return false, "config "..ConfigName .. " was not found"
+        end
+
+        local Success, Result = Library:LoadConfigByName(ConfigName, true)
+
+        if not Success then
+            if not SkipNotification then
+                Library:Notification("Error", "Autoload failed for "..ConfigName .. ":\n"..tostring(Result), 5)
+            end
+
+            return false, Result
+        end
+
+        if not SkipNotification then
+            Library:Notification("Success", "Autoloaded config "..ConfigName, 5)
+        end
+
+        return true, ConfigName
+    end
+
     Library.DeleteConfig = function(self, Config)
-        local ConfigPath = Library:GetConfigPath(Config)
+        local ConfigPath, ConfigName = Library:GetConfigPath(Config)
 
         if ConfigPath and isfile(ConfigPath) then 
             delfile(ConfigPath)
+
+            if Library:GetAutoloadConfig() == ConfigName then
+                Library:ClearAutoloadConfig()
+            end
         end
     end
 
@@ -6232,6 +6425,8 @@ local Library do
                 local ConfigsSection = ConfigsSubPage:Section({Name = "Configs", Side = 1}) do
                     local ConfigName
                     local ConfigSelected
+                    local ConfigNameTextbox
+                    local ConfigsSearchbox
 
                     local function resolve_config_name(prefer_selected)
                         local Value = prefer_selected and ConfigSelected or ConfigName
@@ -6243,7 +6438,26 @@ local Library do
                         return Library:NormalizeConfigName(Value)
                     end
 
-                    local ConfigsSearchbox = ConfigsSection:Searchbox({
+                    local function sync_config_selection(Value)
+                        local ResolvedConfigName = Library:NormalizeConfigName(Value)
+
+                        if not ResolvedConfigName then
+                            return
+                        end
+
+                        ConfigName = ResolvedConfigName
+                        ConfigSelected = ResolvedConfigName
+
+                        if ConfigNameTextbox and ConfigNameTextbox.Set then
+                            ConfigNameTextbox:Set(ResolvedConfigName)
+                        end
+
+                        if ConfigsSearchbox and ConfigsSearchbox.Set then
+                            ConfigsSearchbox:Set(ResolvedConfigName)
+                        end
+                    end
+
+                    ConfigsSearchbox = ConfigsSection:Searchbox({
                         Name = "SearchboxConfigs",
                         Flag = "ConfigsSearchobx",
                         Items = { },
@@ -6253,7 +6467,7 @@ local Library do
                         end
                     })
 
-                    ConfigsSection:Textbox({
+                    ConfigNameTextbox = ConfigsSection:Textbox({
                         Name = "Config name", 
                         Default = "", 
                         Flag = "ConfigName", 
@@ -6262,6 +6476,56 @@ local Library do
                             ConfigName = Value
                         end
                     })
+
+                    local AutoloadStatus = ConfigsSection:Label("Autoload: none")
+
+                    local function refresh_autoload_status()
+                        local AutoloadConfig = Library:GetAutoloadConfig()
+                        AutoloadStatus:SetText("Autoload: "..(AutoloadConfig or "none"))
+                    end
+
+                    local AutoloadButton = ConfigsSection:Button()
+
+                    AutoloadButton:Add("Set autoload", function()
+                        local ResolvedConfigName = resolve_config_name(true)
+
+                        if not ResolvedConfigName then
+                            Library:Notification("Error", "Select or enter a config first", 5)
+                            return
+                        end
+
+                        local Success, Result = Library:SetAutoloadConfig(ResolvedConfigName)
+
+                        if not Success then
+                            Library:Notification("Error", "Failed to set autoload:\n"..tostring(Result), 5)
+                            return
+                        end
+
+                        sync_config_selection(Result)
+                        refresh_autoload_status()
+                        Library:Notification("Success", "Autoload set to "..Result, 5)
+                    end)
+
+                    AutoloadButton:Add("Clear autoload", function()
+                        Library:ClearAutoloadConfig()
+                        refresh_autoload_status()
+                        Library:Notification("Success", "Cleared autoload config", 5)
+                    end)
+
+                    local LoadAutoloadButton = ConfigsSection:Button()
+
+                    LoadAutoloadButton:Add("Load autoload", function()
+                        local Success, Result = Library:LoadAutoloadConfig(true)
+
+                        if not Success then
+                            Library:Notification("Error", "Failed to load autoload:\n"..tostring(Result), 5)
+                            return
+                        end
+
+                        sync_config_selection(Result)
+                        refresh_autoload_status()
+                        Library:Notification("Success", "Autoloaded config "..Result, 5)
+                    end)
 
                     local CreateAndDeleteButton = ConfigsSection:Button()
 
@@ -6291,7 +6555,8 @@ local Library do
                         ConfigSelected = ResolvedConfigName
                         Library:Notification("Success", "Created config "..ResolvedConfigName .. " succesfully", 5)
                         Library:RefreshConfigsList(ConfigsSearchbox)
-                        ConfigsSearchbox:Set(ResolvedConfigName)
+                        sync_config_selection(ResolvedConfigName)
+                        refresh_autoload_status()
                     end)
 
                     CreateAndDeleteButton:Add("Delete", function()
@@ -6313,6 +6578,7 @@ local Library do
                         ConfigSelected = nil
                         Library:Notification("Success", "Deleted config "..ResolvedConfigName .. " succesfully", 5)
                         Library:RefreshConfigsList(ConfigsSearchbox)
+                        refresh_autoload_status()
                     end)
 
                     local LoadAndSaveButton = ConfigsSection:Button()    
@@ -6332,10 +6598,10 @@ local Library do
                             return
                         end
 
-                        local Success, Result = Library:LoadConfig(readfile(ConfigPath))
+                        local Success, Result = Library:LoadConfigByName(ResolvedConfigName, true)
 
                         if Success then 
-                            ConfigSelected = ResolvedConfigName
+                            sync_config_selection(ResolvedConfigName)
                             Library:Notification("Success", "Loaded config "..ResolvedConfigName .. " succesfully", 5)
                         else
                             Library:Notification("Error", "Failed to load config "..ResolvedConfigName .. ":\n"..tostring(Result), 5)
@@ -6362,10 +6628,13 @@ local Library do
                         ConfigSelected = ResolvedConfigName
                         Library:Notification("Success", "Saved config "..ResolvedConfigName .. " succesfully", 5)
                         Library:RefreshConfigsList(ConfigsSearchbox)
-                        ConfigsSearchbox:Set(ResolvedConfigName)
+                        sync_config_selection(ResolvedConfigName)
+                        refresh_autoload_status()
                     end)
 
                     Library:RefreshConfigsList(ConfigsSearchbox)
+                    refresh_autoload_status()
+                    sync_config_selection(Library:GetAutoloadConfig())
                 end
             end
 
@@ -6909,6 +7178,8 @@ function Library.new(settings)
     if compat_pick(settings, {"settings_page", "SettingsPage"}, true) and root._watermark and root._keybind_list then
         root._settings_page = Library:CreateSettingsPage(root._window, root._watermark, root._keybind_list)
     end
+
+    Library:LoadAutoloadConfig(true)
 
     return root
 end

@@ -5285,17 +5285,17 @@ local Library do
             Items["Logo"] = Instances:Create("ImageLabel", {
                 Parent = Items["Side"].Instance,
                 Name = "\0",
-                ImageColor3 = FromRGB(255, 255, 255),
+                ImageColor3 = FromRGB(202, 243, 255),
                 ScaleType = Enum.ScaleType.Fit,
                 BorderColor3 = FromRGB(0, 0, 0),
                 AnchorPoint = Vector2New(0.5, 0),
                 Image = Library:ResolveAsset(Window.Logo),
                 BackgroundTransparency = 1,
                 Position = UDim2New(0.5, 0, 0, 12),
-                Size = UDim2New(0, 75, 0, 75),
+                Size = UDim2New(0, 84, 0, 84),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
-            })
+            })  Items["Logo"]:AddToTheme({ImageColor3 = "Accent"})
 
             if Window.Logo ~= "" then
                 Library:Thread(function()
@@ -5372,9 +5372,9 @@ local Library do
                 Parent = Items["Side"].Instance,
                 Name = "\0",
                 BackgroundTransparency = 1,
-                Position = UDim2New(0, 0, 0, 100),
+                Position = UDim2New(0, 0, 0, 108),
                 BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(1, 0, 1, -135),
+                Size = UDim2New(1, 0, 1, -143),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })

@@ -827,6 +827,34 @@ local Library do
         return Key
     end
 
+    Library.CopyToClipboard = function(self, Text)
+        if type(Text) ~= "string" or Text == "" then
+            return false
+        end
+
+        if type(setclipboard) == "function" then
+            return pcall(setclipboard, Text)
+        end
+
+        if type(toclipboard) == "function" then
+            return pcall(toclipboard, Text)
+        end
+
+        if type(clipboard_set) == "function" then
+            return pcall(clipboard_set, Text)
+        end
+
+        if type(getgenv) == "function" then
+            local env = getgenv()
+            local Clipboard = type(env) == "table" and env.Clipboard or nil
+            if type(Clipboard) == "table" and type(Clipboard.set) == "function" then
+                return pcall(Clipboard.set, Text)
+            end
+        end
+
+        return false
+    end
+
     Library.AddToTheme = function(self, Item, Properties)
         Item = Item.Instance or Item 
 
@@ -5253,6 +5281,8 @@ local Library do
             Logo = Data.Logo or Data.logo or "",
             FadeTime = Data.FadeTime or Data.fadetime or 0.4,
             Size = Data.Size or Data.size or UDim2New(0, 751, 0, 539),
+            DiscordInvite = Data.DiscordInvite or Data.discord_invite or Data.Discord or Data.discord or "https://discord.gg/your-server",
+            DiscordText = Data.DiscordText or Data.discord_text or "Join Discord",
 
             Pages = { },
             Items = { },
@@ -5358,10 +5388,45 @@ local Library do
                 AnchorPoint = Vector2New(1, 1),
                 BackgroundTransparency = 1,
                 Position = UDim2New(1, -6, 1, -6),
-                Size = UDim2New(0, 136, 0, 25),
+                Size = UDim2New(0, 108, 0, 25),
                 BorderSizePixel = 0,
                 BackgroundColor3 = FromRGB(255, 255, 255)
             })
+
+            Items["DiscordButton"] = Instances:Create("TextButton", {
+                Parent = Items["Side"].Instance,
+                Name = "\0",
+                FontFace = Library.Font,
+                TextColor3 = FromRGB(235, 235, 235),
+                BorderColor3 = FromRGB(12, 12, 12),
+                Text = Window.DiscordText,
+                AutoButtonColor = false,
+                AnchorPoint = Vector2New(0, 1),
+                Position = UDim2New(0, 6, 1, -6),
+                Size = UDim2New(0, 74, 0, 20),
+                BorderSizePixel = 2,
+                TextSize = 8,
+                BackgroundColor3 = FromRGB(30, 36, 31)
+            })  Items["DiscordButton"]:AddToTheme({BackgroundColor3 = "Element", BorderColor3 = "Border", TextColor3 = "Text"})
+
+            Items["DiscordButton"]:TextBorder()
+
+            Instances:Create("UIGradient", {
+                Parent = Items["DiscordButton"].Instance,
+                Name = "\0",
+                Rotation = -165,
+                Color = RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, FromRGB(208, 208, 208))}
+            }):AddToTheme({Color = function()
+                return RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, Library.Theme.Gradient)}
+            end})
+
+            Instances:Create("UIStroke", {
+                Parent = Items["DiscordButton"].Instance,
+                Name = "\0",
+                Color = FromRGB(42, 49, 45),
+                LineJoinMode = Enum.LineJoinMode.Miter,
+                ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            }):AddToTheme({Color = "Outline"})
 
             Items["ProfileName"] = Instances:Create("TextLabel", {
                 Parent = Items["Profile"].Instance,
@@ -5460,6 +5525,40 @@ local Library do
 
             local MouseLocation = UserInputService:GetMouseLocation() 
             Items["MouseBackground"].Instance.Position = UDim2New(0, MouseLocation.X - 1, 0, MouseLocation.Y - 56)           
+        end)
+
+        Items["DiscordButton"]:OnHover(function()
+            Items["DiscordButton"]:ChangeItemTheme({BackgroundColor3 = "Hovered Element", BorderColor3 = "Border", TextColor3 = "Text"})
+            Items["DiscordButton"]:Tween(nil, {BackgroundColor3 = Library.Theme["Hovered Element"]})
+        end)
+
+        Items["DiscordButton"]:OnHoverLeave(function()
+            Items["DiscordButton"]:ChangeItemTheme({BackgroundColor3 = "Element", BorderColor3 = "Border", TextColor3 = "Text"})
+            Items["DiscordButton"]:Tween(nil, {BackgroundColor3 = Library.Theme.Element})
+        end)
+
+        Items["DiscordButton"]:Connect("MouseButton1Down", function()
+            local Invite = tostring(Window.DiscordInvite or "")
+
+            if Invite == "" then
+                Library:Notification("Discord", "Invite link is not configured", 3)
+                return
+            end
+
+            Items["DiscordButton"]:Tween(nil, {BackgroundColor3 = Library.Theme.Accent})
+
+            if Library:CopyToClipboard(Invite) then
+                Library:Notification("Discord", "Invite copied to clipboard", 3)
+            else
+                Library:Notification("Discord", Invite, 5)
+            end
+
+            task.delay(0.12, function()
+                if Items["DiscordButton"] and Items["DiscordButton"].Instance then
+                    Items["DiscordButton"]:ChangeItemTheme({BackgroundColor3 = "Element", BorderColor3 = "Border", TextColor3 = "Text"})
+                    Items["DiscordButton"]:Tween(nil, {BackgroundColor3 = Library.Theme.Element})
+                end
+            end)
         end)
 
         local OldSizes = { }
@@ -6685,7 +6784,9 @@ function Library.new(settings)
         _window = Library:Window({
             Logo = compat_pick(settings, {"logo", "Logo"}, "107678529986814"),
             FadeTime = compat_pick(settings, {"fade_time", "FadeTime", "fadeTime"}, 0.3),
-            Size = compat_pick(settings, {"size", "Size"}, nil)
+            Size = compat_pick(settings, {"size", "Size"}, nil),
+            DiscordInvite = compat_pick(settings, {"discord_invite", "DiscordInvite", "discord", "Discord"}, "https://discord.gg/your-server"),
+            DiscordText = compat_pick(settings, {"discord_text", "DiscordText"}, "Join Discord")
         }),
         Flags = Library.Flags
     }, CompatRoot)

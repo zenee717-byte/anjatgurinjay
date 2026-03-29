@@ -6765,13 +6765,27 @@ function Library.new(settings)
 
     Library.MenuKeybind = Library:NormalizeKeybindValue(compat_pick(settings, {"menu_keybind", "MenuKeybind"}, nil))
 
+    local compatTabMode = compat_pick(settings, {
+        "tab_mode",
+        "TabMode",
+        "tabs_in_settings",
+        "TabsInSettings",
+        "top_tabs",
+        "TopTabs"
+    }, false)
+
+    if compatTabMode == true then
+        compatTabMode = "settings_subpages"
+    end
+
     local root = setmetatable({
         _window = Library:Window({
             Logo = compat_pick(settings, {"logo", "Logo"}, "107678529986814"),
             FadeTime = compat_pick(settings, {"fade_time", "FadeTime", "fadeTime"}, 0.3),
             Size = compat_pick(settings, {"size", "Size"}, nil)
         }),
-        Flags = Library.Flags
+        Flags = Library.Flags,
+        _compat_tab_mode = compatTabMode
     }, CompatRoot)
 
     if compat_pick(settings, {"watermark", "Watermark"}, true) then
@@ -6791,10 +6805,31 @@ function Library.new(settings)
 end
 
 function CompatRoot:create_tab(title, icon)
-    local page = self._window:Page({
-        Name = title or "Tab",
-        Columns = 2
-    })
+    local page
+    local tabMode = tostring(self._compat_tab_mode or "")
+
+    if tabMode == "settings_subpages" or tabMode == "top" then
+        local hostPage = self._settings_page
+
+        if not hostPage then
+            hostPage = self._window:Page({
+                Name = "Settings",
+                SubPages = true
+            })
+
+            self._settings_page = hostPage
+        end
+
+        page = hostPage:SubPage({
+            Name = title or "Tab",
+            Columns = 2
+        })
+    else
+        page = self._window:Page({
+            Name = title or "Tab",
+            Columns = 2
+        })
+    end
 
     return setmetatable({
         _root = self,
@@ -7469,6 +7504,7 @@ local demo = Library.new({
     watermark_text = "REVERSE",
     keybind_list = true,
     settings_page = true,
+    tab_mode = "settings_subpages",
     menu_keybind = "None",
     fade_time = 0
 })

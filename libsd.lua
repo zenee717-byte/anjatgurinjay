@@ -1,5 +1,5 @@
 --[[
-    scoot ui library
+    reverse ui library
     made by samet
     
     https://discord.gg/VhvTd5HV8d
@@ -84,9 +84,9 @@ local Library do
         FadeSpeed = 0.2,
 
         Folders = {
-            Directory = "scoot",
-            Configs = "scoot/Configs",
-            Assets = "scoot/Assets",
+            Directory = "reverse",
+            Configs = "reverse/Configs",
+            Assets = "reverse/Assets",
         },
 
         Images = {
@@ -6719,7 +6719,7 @@ function Library.new(settings)
 
     local root = setmetatable({
         _window = Library:Window({
-            Logo = compat_pick(settings, {"logo", "Logo"}, "77218680285262"),
+            Logo = compat_pick(settings, {"logo", "Logo"}, "72389656763322"),
             FadeTime = compat_pick(settings, {"fade_time", "FadeTime", "fadeTime"}, 0.3),
             Size = compat_pick(settings, {"size", "Size"}, nil)
         }),
@@ -7091,7 +7091,7 @@ end
 
 if false then
 local Window = Library:Window({
-    Logo = "77218680285262",
+    Logo = "72389656763322",
     FadeTime = 0.3,
 })
 

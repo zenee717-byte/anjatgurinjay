@@ -137,6 +137,7 @@ local Library do
         PendingConfigData = nil,
         PendingConfigName = nil,
         ApplyingPendingConfig = false,
+        PendingConfigQueued = false,
     }
 
     Library.__index = Library
@@ -149,7 +150,7 @@ local Library do
             Library:RegisterFlag(Index)
 
             if type(Value) == "function" and not Library.ApplyingPendingConfig then
-                Library:ApplyPendingConfigFlag(Index)
+                Library:QueuePendingConfigApply()
             end
         end
     })
@@ -1054,12 +1055,38 @@ local Library do
         return true
     end
 
+    Library.QueuePendingConfigApply = function(self)
+        if Library == nil or Library.ApplyingPendingConfig then
+            return false
+        end
+
+        if type(Library.PendingConfigData) ~= "table" or Library.PendingConfigQueued then
+            return false
+        end
+
+        Library.PendingConfigQueued = true
+
+        task.defer(function()
+            if Library == nil then
+                return
+            end
+
+            Library.PendingConfigQueued = false
+
+            if type(Library.PendingConfigData) == "table" and not Library.ApplyingPendingConfig then
+                Library:ApplyPendingConfig()
+            end
+        end)
+
+        return true
+    end
+
     Library.ApplyPendingConfigFlag = function(self, Flag)
         if Library.ApplyingPendingConfig then
             return true
         end
 
-        if not Library.PendingConfigData or not Library.PendingConfigData[Flag] then
+        if not Library.PendingConfigData or Library.PendingConfigData[Flag] == nil then
             return true
         end
 
@@ -7315,10 +7342,26 @@ function CompatRoot:Unload()
 end
 
 function CompatRoot:load()
-    if not self._autoload_loaded then
+    if self._autoload_loaded or self._autoload_scheduled then
+        return self
+    end
+
+    self._autoload_scheduled = true
+
+    task.defer(function()
+        if Library == nil then
+            return
+        end
+
+        self._autoload_scheduled = false
+
+        if self._autoload_loaded then
+            return
+        end
+
         self._autoload_loaded = true
         Library:LoadAutoloadConfig(true)
-    end
+    end)
 
     return self
 end

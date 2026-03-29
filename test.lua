@@ -1123,10 +1123,10 @@ local Library do
                     Items["SubPages"] = Instances:Create("Frame", {
                         Parent = Items["Page"].Instance,
                         Name = "\0",
-                        Size = UDim2New(0, 0, 0, 35),
+                        Size = UDim2New(1, 0, 0, 0),
                         BorderColor3 = FromRGB(42, 49, 45),
                         BorderSizePixel = 2,
-                        AutomaticSize = Enum.AutomaticSize.X,
+                        AutomaticSize = Enum.AutomaticSize.Y,
                         BackgroundColor3 = FromRGB(20, 24, 21)
                     })  Items["SubPages"]:AddToTheme({BackgroundColor3 = "Page Background", BorderColor3 = "Outline"})
 
@@ -1135,16 +1135,19 @@ local Library do
                     Instances:Create("UIPadding", {
                         Parent = Items["SubPages"].Instance,
                         Name = "\0",
+                        PaddingTop = UDimNew(0, 7),
+                        PaddingBottom = UDimNew(0, 7),
                         PaddingRight = UDimNew(0, 7),
                         PaddingLeft = UDimNew(0, 7)
                     })
 
-                    Instances:Create("UIListLayout", {
+                    Items["SubPagesLayout"] = Instances:Create("UIGridLayout", {
                         Parent = Items["SubPages"].Instance,
                         Name = "\0",
-                        VerticalAlignment = Enum.VerticalAlignment.Center,
-                        FillDirection = Enum.FillDirection.Horizontal,
-                        Padding = UDimNew(0, 12),
+                        CellPadding = UDim2New(0, 8, 0, 8),
+                        CellSize = UDim2New(0.32, -2, 0, 24),
+                        FillDirectionMaxCells = 3,
+                        HorizontalAlignment = Enum.HorizontalAlignment.Left,
                         SortOrder = Enum.SortOrder.LayoutOrder
                     })
 
@@ -1152,9 +1155,9 @@ local Library do
                         Parent = Items["Page"].Instance,
                         Name = "\0",
                         BackgroundTransparency = 1,
-                        Position = UDim2New(0, 0, 0, 51),
+                        Position = UDim2New(0, 0, 0, 0),
                         BorderColor3 = FromRGB(42, 49, 45),
-                        Size = UDim2New(1, 0, 1, -51),
+                        Size = UDim2New(1, 0, 1, 0),
                         BorderSizePixel = 0,
                         BackgroundColor3 = FromRGB(255, 255, 255)
                     })
@@ -1208,6 +1211,18 @@ local Library do
             end
 
             local Debounce = false
+
+            if Data.SubPages and Items["SubPagesLayout"] then
+                local function UpdateSubPagesLayout()
+                    local absoluteHeight = Items["SubPagesLayout"].Instance.AbsoluteContentSize.Y + 14
+                    Items["SubPages"].Instance.Size = UDim2New(1, 0, 0, absoluteHeight)
+                    Items["Columns"].Instance.Position = UDim2New(0, 0, 0, absoluteHeight + 10)
+                    Items["Columns"].Instance.Size = UDim2New(1, 0, 1, -(absoluteHeight + 10))
+                end
+
+                UpdateSubPagesLayout()
+                Items["SubPagesLayout"].Instance:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateSubPagesLayout)
+            end
 
             function Page:Turn(Bool)
                 if Debounce then 
@@ -1306,9 +1321,8 @@ local Library do
                     Text = "",
                     AutoButtonColor = false,
                     BackgroundTransparency = 1,
-                    Size = UDim2New(0, 0, 0, 20),
+                    Size = UDim2New(1, 0, 0, 24),
                     BorderSizePixel = 2,
-                    AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 14,
                     BackgroundColor3 = FromRGB(25, 30, 26)
                 })  Items["Inactive"]:AddToTheme({BackgroundColor3 = "Page Background", BorderColor3 = "Border"})
@@ -1330,11 +1344,13 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Text = Data.Name,
                     AnchorPoint = Vector2New(0.5, 0.5),
-                    Size = UDim2New(0, 0, 0, 15),
+                    Size = UDim2New(1, -12, 1, 0),
                     BackgroundTransparency = 1,
-                    Position = UDim2New(0.5, -5, 0.5, 0),
+                    Position = UDim2New(0.5, 0, 0.5, 0),
                     BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.X,
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    TextYAlignment = Enum.TextYAlignment.Center,
+                    TextWrapped = true,
                     TextSize = 9,
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })  Items["Text"]:AddToTheme({TextColor3 = "Text"})
@@ -1344,16 +1360,16 @@ local Library do
                 Instances:Create("UIPadding", {
                     Parent = Items["Text"].Instance,
                     Name = "\0",
-                    PaddingRight = UDimNew(0, 8),
-                    PaddingLeft = UDimNew(0, 8)
+                    PaddingRight = UDimNew(0, 6),
+                    PaddingLeft = UDimNew(0, 6)
                 })
 
                 Instances:Create("UIPadding", {
                     Parent = Items["Inactive"].Instance,
                     Name = "\0",
                     PaddingTop = UDimNew(0, 2),
-                    PaddingLeft = UDimNew(0, 18),
-                    PaddingRight = UDimNew(0, 12)
+                    PaddingLeft = UDimNew(0, 12),
+                    PaddingRight = UDimNew(0, 8)
                 })
 
                 Items["Glow"] = Instances:Create("Frame", {
@@ -1468,7 +1484,7 @@ local Library do
                     Items["ButtonBorder"]:Tween(nil, {Transparency = 1})
                     Items["Liner"]:Tween(nil, {BackgroundTransparency = 1})
                     Items["Glow"]:Tween(nil, {BackgroundTransparency = 1})
-                    Items["Text"]:Tween(nil, {Position = UDim2New(0.5, -5, 0.5, 0)})
+                    Items["Text"]:Tween(nil, {Position = UDim2New(0.5, 0, 0.5, 0)})
                 end
 
                 local AllInstances = Items["Page"].Instance:GetDescendants()
@@ -6875,12 +6891,13 @@ function CompatTab:create_module(settings)
     local side = (sectionSide == "right" or sectionSide == 2) and 2 or 1
     local moduleFlag = compat_flag(settings)
     local moduleTitle = compat_title(settings, "Module")
+    local moduleTabTitle = compat_pick(settings, {"tab_title", "TabTitle", "subpage_name", "SubPageName"}, moduleTitle)
     local section
     local hostPage = self._page
 
     if self._module_tabs then
         hostPage = self._page:SubPage({
-            Name = moduleTitle,
+            Name = moduleTabTitle,
             Columns = compat_pick(settings, {"columns", "Columns"}, 2)
         })
 
@@ -7618,7 +7635,7 @@ autoparry_module:create_checkbox({
 })
 
 local hotkey_module = autoparry:create_module({
-    title = "AutoCurve Hotkey(PC)",
+    title = "Auto Curve",
     flag = "DemoAutoCurveHotkey",
     description = "Press 1-8 to change curve",
     section = "right",
@@ -7632,7 +7649,7 @@ hotkey_module:create_checkbox({
 })
 
 detection:create_module({
-    title = "Infinity Detection",
+    title = "Infinity",
     flag = "DemoInfinityDetection",
     description = "",
     section = "left",
@@ -7640,7 +7657,7 @@ detection:create_module({
 })
 
 detection:create_module({
-    title = "Death Slash Detection",
+    title = "Death Slash",
     flag = "DemoDeathSlashDetection",
     description = "",
     section = "right",
@@ -7648,7 +7665,7 @@ detection:create_module({
 })
 
 detection:create_module({
-    title = "Time Hole Detection",
+    title = "Time Hole",
     flag = "DemoTimeHoleDetection",
     description = "",
     section = "left",
@@ -7656,7 +7673,7 @@ detection:create_module({
 })
 
 local slashes_module = detection:create_module({
-    title = "Slashes Of Fury Detection",
+    title = "Slashes Fury",
     flag = "DemoSlashesOfFury",
     description = "",
     section = "right",
@@ -7684,7 +7701,7 @@ slashes_module:create_slider({
 })
 
 detection:create_module({
-    title = "Anti-Phantom [BETA]",
+    title = "Anti-Phantom",
     flag = "DemoAntiPhantom",
     description = "",
     section = "left",

@@ -5621,7 +5621,7 @@ local Library do
             Logo = Data.Logo or Data.logo or "",
             FadeTime = Data.FadeTime or Data.fadetime or 0.4,
             Size = Data.Size or Data.size or UDim2New(0, 751, 0, 539),
-            DiscordInvite = Data.DiscordInvite or Data.discord_invite or Data.Discord or Data.discord or "https://discord.gg/your-server",
+            DiscordInvite = Data.DiscordInvite or Data.discord_invite or Data.Discord or Data.discord or "https://discord.gg/AbwmdrraBh",
             DiscordText = Data.DiscordText or Data.discord_text or "Join Discord",
 
             Pages = { },
@@ -7301,7 +7301,7 @@ function Library.new(settings)
             Logo = compat_pick(settings, {"logo", "Logo"}, "107678529986814"),
             FadeTime = compat_pick(settings, {"fade_time", "FadeTime", "fadeTime"}, 0.3),
             Size = compat_pick(settings, {"size", "Size"}, nil),
-            DiscordInvite = compat_pick(settings, {"discord_invite", "DiscordInvite", "discord", "Discord"}, "https://discord.gg/your-server"),
+            DiscordInvite = compat_pick(settings, {"discord_invite", "DiscordInvite", "discord", "Discord"}, "https://discord.gg/AbwmdrraBh"),
             DiscordText = compat_pick(settings, {"discord_text", "DiscordText"}, "Join Discord")
         }),
         Flags = Library.Flags

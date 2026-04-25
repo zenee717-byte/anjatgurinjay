@@ -725,6 +725,7 @@ local function wrap_keybind(raw, flag, displayName, showInList)
 		end
 	end
 
+	keybind._sync = sync
 	sync()
 
 	function keybind:Get()
@@ -811,6 +812,7 @@ local function attach_keybind(host, settings, displayName)
 	local changedCallback = pick(settings, { "changed_callback", "ChangedCallback" }, function() end)
 	local pickerNoUI = pick(settings, { "no_ui", "NoUI" }, true)
 	local showInList = pick(settings, { "show_in_list", "ShowInList" }, true)
+	local wrappedKeybind
 
 	local pickerConfig = {
 		SyncToggleState = pick(settings, { "sync_toggle_state", "SyncToggleState" }, false),
@@ -820,11 +822,17 @@ local function attach_keybind(host, settings, displayName)
 		Callback = function(state)
 			local raw = ensure_option(Options, flag)
 			update_keybind_flag(flag, raw, state)
+			if wrappedKeybind and wrappedKeybind._sync then
+				wrappedKeybind._sync(state)
+			end
 			callback(state)
 		end,
 		ChangedCallback = function(newValue)
 			local raw = ensure_option(Options, flag)
 			update_keybind_flag(flag, raw)
+			if wrappedKeybind and wrappedKeybind._sync then
+				wrappedKeybind._sync()
+			end
 			changedCallback(newValue)
 		end,
 	}
@@ -838,7 +846,11 @@ local function attach_keybind(host, settings, displayName)
 
 	local raw = ensure_option(Options, flag)
 	update_keybind_flag(flag, raw)
-	return wrap_keybind(raw, flag, displayName, showInList)
+	wrappedKeybind = wrap_keybind(raw, flag, displayName, showInList)
+	if wrappedKeybind._sync then
+		wrappedKeybind._sync()
+	end
+	return wrappedKeybind
 end
 
 local function wrap_text(host, raw, initialText)
@@ -1603,7 +1615,7 @@ function Library.new(settings)
 		Flags = Library.Flags,
 	}, CompatRoot)
 
-	if pick(settings, { "watermark", "Watermark" }, true) then
+	if pick(settings, { "watermark", "Watermark" }, false) then
 		root._watermark = Library:Watermark(pick(settings, { "watermark_text", "WatermarkText" }, "reverse"))
 		root._watermark:BindToggle(root._window)
 	end

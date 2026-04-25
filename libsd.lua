@@ -38,17 +38,32 @@ local function read_source(path)
     return source
 end
 
-local function load_source(path)
-    local source = read_source(path)
-    if not source then
-        return nil, "missing source: " .. tostring(path)
+local function fetch_remote_source(url)
+    if type(game) ~= "userdata" and type(game) ~= "table" then
+        return nil
+    end
+
+    local ok_read, source = pcall(function()
+        return game:HttpGet(url)
+    end)
+
+    if not ok_read or type(source) ~= "string" or source == "" then
+        return nil
+    end
+
+    return source
+end
+
+local function compile_source(source, chunk_name)
+    if type(source) ~= "string" or source == "" then
+        return nil, "empty source"
     end
 
     if type(loadstring) ~= "function" then
         return nil, "loadstring unavailable"
     end
 
-    local chunk, compileError = loadstring(source, "@" .. path)
+    local chunk, compileError = loadstring(source, chunk_name or "=(reverse-core)")
     if not chunk then
         return nil, compileError
     end
@@ -63,6 +78,36 @@ local function load_source(path)
     end
 
     return result
+end
+
+local function load_source(local_paths, remote_urls)
+    local tried_sources = {}
+
+    for _, path in ipairs(local_paths or {}) do
+        tried_sources[#tried_sources + 1] = tostring(path)
+        local source = read_source(path)
+        if source then
+            local result, err = compile_source(source, "@" .. tostring(path))
+            if result then
+                return result
+            end
+            return nil, err
+        end
+    end
+
+    for _, url in ipairs(remote_urls or {}) do
+        tried_sources[#tried_sources + 1] = tostring(url)
+        local source = fetch_remote_source(url)
+        if source then
+            local result, err = compile_source(source, "=" .. tostring(url))
+            if result then
+                return result
+            end
+            return nil, err
+        end
+    end
+
+    return nil, "missing source: " .. table.concat(tried_sources, " | ")
 end
 
 local function pick(settings, keys, defaultValue)
@@ -315,7 +360,20 @@ end
 local previousBootstrap = rawget(SharedEnv, "__reverse_core_bootstrap")
 SharedEnv.__reverse_core_bootstrap = true
 
-local BaseLibrary, loadError = load_source("AUTOPARRYSOURCE/reverselow.lua")
+local remoteBase = rawget(SharedEnv, "__reverse_core_remote_base") or "https://raw.githubusercontent.com/zenee717-byte/anjatgurinjay/main"
+remoteBase = tostring(remoteBase):gsub("/+$", "")
+
+local BaseLibrary, loadError = load_source(
+    {
+        "AUTOPARRYSOURCE/reverselow.lua",
+        "reverselow.lua",
+        "AUTOPARRYSOURCE/lib reverselow.lua",
+    },
+    {
+        remoteBase .. "/AUTOPARRYSOURCE/reverselow.lua",
+        remoteBase .. "/reverselow.lua",
+    }
+)
 
 SharedEnv.__reverse_core_bootstrap = previousBootstrap
 

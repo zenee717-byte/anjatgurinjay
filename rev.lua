@@ -662,6 +662,73 @@ local function create_disabled_watermark()
 	return watermark
 end
 
+local function align_window_title_left(window, titleText)
+	if not window then
+		return false
+	end
+
+	window._guiRoot = window:_find_gui_root()
+
+	local guiRoot = window._guiRoot
+	if not guiRoot then
+		return false
+	end
+
+	local wantedTitle = tostring(titleText or "Rev.")
+	local titleLabel
+	local titleHolder
+	local titleLayout
+
+	for _, descendant in ipairs(guiRoot:GetDescendants()) do
+		if descendant:IsA("TextLabel") and descendant.Text == wantedTitle then
+			local parent = descendant.Parent
+			if parent and parent:IsA("Frame") then
+				local layout = parent:FindFirstChildOfClass("UIListLayout")
+				if layout then
+					titleLabel = descendant
+					titleHolder = parent
+					titleLayout = layout
+					break
+				end
+			end
+		end
+	end
+
+	if not titleLabel or not titleHolder or not titleLayout then
+		return false
+	end
+
+	titleLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	for _, child in ipairs(titleHolder:GetChildren()) do
+		if child ~= titleLabel and (child:IsA("ImageLabel") or child:IsA("TextLabel")) then
+			child.Visible = false
+			child.Size = UDim2.fromOffset(0, 0)
+		end
+	end
+
+	return true
+end
+
+local function schedule_window_title_alignment(window, titleText)
+	task.defer(function()
+		for _, delayTime in ipairs({ 0, 0.1, 0.25, 0.5 }) do
+			if delayTime > 0 then
+				task.wait(delayTime)
+			end
+
+			if rawget(getgenv(), "__reverse_obsidian_compat") ~= Library then
+				return
+			end
+
+			if align_window_title_left(window, titleText) then
+				return
+			end
+		end
+	end)
+end
+
 local function attach_gui_menu_section(page, keybindList)
 	if not page then
 		return nil
@@ -1800,11 +1867,12 @@ function Library:Window(data)
 	end
 
 	self.MenuKeybind = normalize_keybind_value(pick(data, { "menu_keybind", "MenuKeybind" }, self.MenuKeybind))
+	local windowTitle = pick(data, { "Title", "title" }, "Rev.")
 
 	local rawWindow = Obsidian:CreateWindow({
-		Title = pick(data, { "Title", "title" }, "Rev."),
+		Title = windowTitle,
 		Footer = pick(data, { "Footer", "footer" }, "version: 0.1"),
-		Icon = pick(data, { "Icon", "icon", "Logo", "logo" }, 732339897),
+		Icon = nil,
 		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
 		ShowCustomCursor = pick(data, { "ShowCustomCursor", "show_custom_cursor" }, false),
 		Center = pick(data, { "Center", "center" }, nil),
@@ -1820,6 +1888,7 @@ function Library:Window(data)
 		_raw = rawWindow,
 		_snapshot = snapshot,
 		_guiRoot = nil,
+		_titleText = windowTitle,
 		IsOpen = true,
 		_pagesByName = {},
 		_pendingGuiSettings = nil,
@@ -1827,6 +1896,7 @@ function Library:Window(data)
 	}, WindowMethods)
 
 	window._guiRoot = window:_find_gui_root()
+	schedule_window_title_alignment(window, windowTitle)
 	self._mainWindow = window
 	table.insert(self._windows, window)
 
@@ -1897,7 +1967,7 @@ function Library.new(settings)
 		_window = Library:Window({
 			Title = pick(settings, { "title", "Title" }, "Rev."),
 			Footer = pick(settings, { "footer", "Footer" }, "version: 0.1"),
-			Icon = pick(settings, { "logo", "Logo", "icon", "Icon" }, 251435890),
+			Icon = nil,
 			MenuKeybind = pick(settings, { "menu_keybind", "MenuKeybind" }, Library.MenuKeybind),
 		}),
 		Flags = Library.Flags,

@@ -719,6 +719,32 @@ function Library:create_ui()
     Handler.Name = 'Handler'
     Handler.Size = UDim2.new(0, 698, 0, 560)
     Handler.Parent = Container
+
+    local CollapsedHeader = Instance.new('TextButton')
+    CollapsedHeader.Name = 'CollapsedHeader'
+    CollapsedHeader.AutoButtonColor = false
+    CollapsedHeader.Text = ''
+    CollapsedHeader.BackgroundTransparency = 1
+    CollapsedHeader.Size = UDim2.fromScale(1, 1)
+    CollapsedHeader.Visible = false
+    CollapsedHeader.ZIndex = 5
+    CollapsedHeader.Parent = Container
+
+    local CollapsedTitle = Instance.new('TextLabel')
+    CollapsedTitle.Name = 'CollapsedTitle'
+    CollapsedTitle.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold)
+    CollapsedTitle.TextColor3 = ThemeRGB(255, 255, 255)
+    CollapsedTitle.TextTransparency = 0.02
+    CollapsedTitle.Text = 'Rev.'
+    CollapsedTitle.Size = UDim2.new(1, -16, 1, 0)
+    CollapsedTitle.AnchorPoint = Vector2.new(0.5, 0.5)
+    CollapsedTitle.Position = UDim2.new(0.5, 0, 0.5, 0)
+    CollapsedTitle.BackgroundTransparency = 1
+    CollapsedTitle.TextXAlignment = Enum.TextXAlignment.Center
+    CollapsedTitle.TextYAlignment = Enum.TextYAlignment.Center
+    CollapsedTitle.TextSize = 26
+    CollapsedTitle.ZIndex = 6
+    CollapsedTitle.Parent = CollapsedHeader
     
     local Tabs = Instance.new('ScrollingFrame')
     Tabs.ScrollBarImageTransparency = 1
@@ -742,12 +768,12 @@ function Library:create_ui()
     ClientName.TextTransparency = 0.05
     ClientName.Text = 'Rev.'
     ClientName.Name = 'ClientName'
-    ClientName.Size = UDim2.new(0, 88, 0, 22)
+    ClientName.Size = UDim2.new(0, 124, 0, 28)
     ClientName.AnchorPoint = Vector2.new(0, 0.5)
-    ClientName.Position = UDim2.new(0.03, 0, 0.055, 0)
+    ClientName.Position = UDim2.new(0, 18, 0, 30)
     ClientName.BackgroundTransparency = 1
     ClientName.TextXAlignment = Enum.TextXAlignment.Left
-    ClientName.TextSize = 20
+    ClientName.TextSize = 24
     ClientName.Parent = Handler
     
     local UIGradient = Instance.new('UIGradient')
@@ -759,6 +785,15 @@ function Library:create_ui()
     UIGradient.Offset = Vector2.new(-1, 0)
     UIGradient.Parent = ClientName
 
+    local CollapsedGradient = Instance.new('UIGradient')
+    CollapsedGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, ThemePalette.accentSoft),
+        ColorSequenceKeypoint.new(0.45, ThemePalette.background),
+        ColorSequenceKeypoint.new(1, ThemePalette.accent)
+    }
+    CollapsedGradient.Offset = Vector2.new(-1, 0)
+    CollapsedGradient.Parent = CollapsedTitle
+
     task.spawn(function()
         while ClientName and ClientName.Parent and UIGradient.Parent do
             local tween_in = TweenService:Create(UIGradient, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
@@ -768,6 +803,22 @@ function Library:create_ui()
             tween_in.Completed:Wait()
 
             local tween_out = TweenService:Create(UIGradient, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Offset = Vector2.new(-1, 0)
+            })
+            tween_out:Play()
+            tween_out.Completed:Wait()
+        end
+    end)
+
+    task.spawn(function()
+        while CollapsedTitle and CollapsedTitle.Parent and CollapsedGradient.Parent do
+            local tween_in = TweenService:Create(CollapsedGradient, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Offset = Vector2.new(1, 0)
+            })
+            tween_in:Play()
+            tween_in.Completed:Wait()
+
+            local tween_out = TweenService:Create(CollapsedGradient, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
                 Offset = Vector2.new(-1, 0)
             })
             tween_out:Play()
@@ -1106,7 +1157,14 @@ function Library:create_ui()
         VicoX.Enabled = not VicoX.Enabled;
     end;
 
+    local function set_ui_mode(expanded: boolean)
+        Handler.Visible = expanded
+        CollapsedHeader.Visible = not expanded
+    end
+
     function self:change_visiblity(state: boolean)
+        set_ui_mode(state)
+
         if state then
             TweenService:Create(Container, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                 Size = UDim2.fromOffset(698, 560)
@@ -1117,6 +1175,8 @@ function Library:create_ui()
             }):Play()
         end
     end
+
+    set_ui_mode(self._ui_open)
     
 
     function self:load()
@@ -3604,6 +3664,11 @@ function Library:create_ui()
 
         self._ui_open = not self._ui_open
         self:change_visiblity(self._ui_open)
+    end)
+
+    CollapsedHeader.MouseButton1Click:Connect(function()
+        self._ui_open = true
+        self:change_visiblity(true)
     end)
 
     self._ui.Container.Handler.Minimize.MouseButton1Click:Connect(function()

@@ -867,7 +867,8 @@ function Library:create_ui()
     local PlayerCard = Instance.new("Frame")
     PlayerCard.Name = "PlayerCard"
     PlayerCard.Size = UDim2.new(0, 120, 0, 156)
-    PlayerCard.Position = UDim2.new(0, 6, 0, 394)
+    PlayerCard.AnchorPoint = Vector2.new(0.5, 0)
+    PlayerCard.Position = UDim2.new(0.1175, 0, 0, 394)
     PlayerCard.BackgroundColor3 = ThemePalette.surface
     PlayerCard.BorderSizePixel = 0
     PlayerCard.Parent = Handler

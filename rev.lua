@@ -760,8 +760,7 @@ local function attach_keybind(host, settings, displayName)
 	local changedCallback = pick(settings, { "changed_callback", "ChangedCallback" }, function() end)
 	local noUI = pick(settings, { "no_ui", "NoUI" }, false)
 
-	host:AddKeyPicker(flag, {
-		Default = normalize_picker_key(pick(settings, { "default", "Default", "key", "Key" }, nil)),
+	local pickerConfig = {
 		SyncToggleState = pick(settings, { "sync_toggle_state", "SyncToggleState" }, false),
 		Mode = pick(settings, { "mode", "Mode" }, "Toggle"),
 		Text = displayName or pick(settings, { "title", "Title", "text", "Text", "name", "Name" }, "Keybind"),
@@ -776,7 +775,14 @@ local function attach_keybind(host, settings, displayName)
 			update_keybind_flag(flag, raw)
 			changedCallback(newValue)
 		end,
-	})
+	}
+
+	local explicitDefault = pick(settings, { "default", "Default", "key", "Key" }, nil)
+	if explicitDefault ~= nil then
+		pickerConfig.Default = normalize_picker_key(explicitDefault)
+	end
+
+	host:AddKeyPicker(flag, pickerConfig)
 
 	local raw = ensure_option(Options, flag)
 	update_keybind_flag(flag, raw)
@@ -1600,10 +1606,11 @@ end
 
 function CompatTab:create_module(settings)
 	settings = settings or {}
+	local moduleTitle = pick(settings, { "title", "Title", "name", "Name" }, "Module")
 
 	local side = pick(settings, { "section", "Section", "side", "Side" }, "left")
 	local section = self._page:Section({
-		Name = pick(settings, { "title", "Title", "name", "Name" }, "Module"),
+		Name = moduleTitle,
 		Side = (side == 2 or side == "right" or side == "Right") and 2 or 1,
 	})
 
@@ -1637,15 +1644,17 @@ function CompatTab:create_module(settings)
 	Library:SetFlagLoadPriority(moduleFlag, 100, "module_toggle")
 
 	do
+		local keybindLabel = section:Label("Keybind")
 		local initialized = false
 		local lastToggleState = module._state
 
-		module._keybind = module._toggle:Keybind({
+		module._keybind_label = keybindLabel
+		module._keybind = keybindLabel:Keybind({
 			Flag = moduleFlag .. "_keybind",
 			Default = pick(settings, { "keybind", "Keybind", "default_keybind", "DefaultKeybind" }, nil),
 			Mode = pick(settings, { "keybind_mode", "KeybindMode" }, "Toggle"),
 			SyncToggleState = false,
-			Text = pick(settings, { "title", "Title", "name", "Name" }, "Module"),
+			Text = moduleTitle,
 			Callback = function(value)
 				if not initialized then
 					return

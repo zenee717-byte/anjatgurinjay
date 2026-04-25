@@ -1802,9 +1802,9 @@ function Library:Window(data)
 	self.MenuKeybind = normalize_keybind_value(pick(data, { "menu_keybind", "MenuKeybind" }, self.MenuKeybind))
 
 	local rawWindow = Obsidian:CreateWindow({
-		Title = pick(data, { "Title", "title" }, "reverse"),
-		Footer = pick(data, { "Footer", "footer" }, "version: reverse"),
-		Icon = pick(data, { "Icon", "icon", "Logo", "logo" }, 95816097006870),
+		Title = pick(data, { "Title", "title" }, "Rev."),
+		Footer = pick(data, { "Footer", "footer" }, "version: 0.1"),
+		Icon = pick(data, { "Icon", "icon", "Logo", "logo" }, 11151804229),
 		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
 		ShowCustomCursor = pick(data, { "ShowCustomCursor", "show_custom_cursor" }, false),
 		Center = pick(data, { "Center", "center" }, nil),

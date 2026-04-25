@@ -45,23 +45,24 @@ local Lighting = cloneref(game:GetService('Lighting'))
 local Players = cloneref(game:GetService('Players'))
 local CoreGui = cloneref(game:GetService('CoreGui'))
 local Debris = cloneref(game:GetService('Debris'))
+local LocalPlayer = Players.LocalPlayer
 
 local RawFromRGB = Color3.fromRGB
 
 local ThemePalette = {
-    background = RawFromRGB(11, 10, 16),
-    surface = RawFromRGB(19, 15, 25),
-    surfaceAlt = RawFromRGB(28, 20, 37),
-    surfaceSoft = RawFromRGB(37, 27, 49),
-    accent = RawFromRGB(255, 96, 186),
-    accentSoft = RawFromRGB(223, 118, 255),
-    accentDeep = RawFromRGB(154, 86, 255),
-    text = RawFromRGB(255, 236, 247),
-    textSoft = RawFromRGB(246, 207, 235),
-    textMuted = RawFromRGB(211, 170, 214),
-    placeholder = RawFromRGB(184, 142, 193),
-    toggleOff = RawFromRGB(42, 31, 54),
-    toggleKnob = RawFromRGB(103, 67, 134)
+    background = RawFromRGB(9, 9, 16),
+    surface = RawFromRGB(17, 16, 28),
+    surfaceAlt = RawFromRGB(23, 21, 38),
+    surfaceSoft = RawFromRGB(30, 27, 47),
+    accent = RawFromRGB(118, 87, 255),
+    accentSoft = RawFromRGB(149, 122, 255),
+    accentDeep = RawFromRGB(90, 63, 204),
+    text = RawFromRGB(238, 234, 255),
+    textSoft = RawFromRGB(219, 210, 255),
+    textMuted = RawFromRGB(170, 160, 212),
+    placeholder = RawFromRGB(133, 124, 177),
+    toggleOff = RawFromRGB(34, 30, 54),
+    toggleKnob = RawFromRGB(90, 78, 142)
 }
 
 local ThemeMap = {
@@ -70,31 +71,31 @@ local ThemeMap = {
     ["25,30,55"] = ThemePalette.surfaceAlt,
     ["25,30,58"] = ThemePalette.surfaceAlt,
     ["28,33,62"] = ThemePalette.surfaceSoft,
-    ["28,35,65"] = RawFromRGB(40, 29, 54),
+    ["28,35,65"] = RawFromRGB(34, 30, 54),
     ["30,30,50"] = ThemePalette.toggleOff,
-    ["30,40,70"] = RawFromRGB(54, 34, 69),
-    ["35,42,75"] = RawFromRGB(47, 33, 62),
-    ["35,45,80"] = RawFromRGB(50, 35, 66),
+    ["30,40,70"] = RawFromRGB(48, 39, 79),
+    ["35,42,75"] = RawFromRGB(39, 33, 64),
+    ["35,45,80"] = RawFromRGB(44, 37, 71),
     ["50,70,120"] = ThemePalette.toggleKnob,
     ["50,80,160"] = ThemePalette.accentDeep,
-    ["80,120,200"] = RawFromRGB(205, 109, 255),
-    ["88,101,242"] = RawFromRGB(171, 93, 255),
-    ["100,140,230"] = RawFromRGB(224, 117, 255),
+    ["80,120,200"] = ThemePalette.accentSoft,
+    ["88,101,242"] = ThemePalette.accent,
+    ["100,140,230"] = ThemePalette.accentSoft,
     ["100,160,255"] = ThemePalette.accentSoft,
     ["100,185,255"] = ThemePalette.accent,
-    ["120,150,200"] = RawFromRGB(223, 171, 225),
-    ["120,160,220"] = RawFromRGB(231, 154, 255),
-    ["140,155,255"] = RawFromRGB(236, 150, 255),
-    ["160,195,230"] = RawFromRGB(229, 184, 228),
-    ["160,200,255"] = RawFromRGB(255, 190, 237),
-    ["160,210,255"] = RawFromRGB(255, 184, 232),
-    ["160,215,255"] = RawFromRGB(244, 181, 239),
+    ["120,150,200"] = ThemePalette.textMuted,
+    ["120,160,220"] = ThemePalette.textSoft,
+    ["140,155,255"] = ThemePalette.accentSoft,
+    ["160,195,230"] = ThemePalette.textMuted,
+    ["160,200,255"] = ThemePalette.textSoft,
+    ["160,210,255"] = ThemePalette.accentSoft,
+    ["160,215,255"] = ThemePalette.accentSoft,
     ["180,200,230"] = ThemePalette.textMuted,
-    ["190,225,255"] = RawFromRGB(250, 206, 239),
-    ["200,225,255"] = RawFromRGB(250, 213, 241),
-    ["200,210,255"] = RawFromRGB(235, 192, 245),
-    ["200,220,255"] = RawFromRGB(241, 198, 248),
-    ["210,235,255"] = RawFromRGB(255, 219, 242),
+    ["190,225,255"] = ThemePalette.textSoft,
+    ["200,225,255"] = ThemePalette.textSoft,
+    ["200,210,255"] = ThemePalette.textSoft,
+    ["200,220,255"] = ThemePalette.textSoft,
+    ["210,235,255"] = ThemePalette.text,
     ["220,235,255"] = ThemePalette.text,
     ["220,240,255"] = ThemePalette.text,
     ["225,240,255"] = ThemePalette.text,
@@ -105,7 +106,7 @@ local function ThemeRGB(red, green, blue)
     return ThemeMap[string.format("%d,%d,%d", red, green, blue)] or RawFromRGB(red, green, blue)
 end
 
-local mouse = Players.LocalPlayer:GetMouse()
+local mouse = LocalPlayer:GetMouse()
 local new_VicoX = CoreGui:FindFirstChild('VicoX')
 
 if new_VicoX then
@@ -723,10 +724,10 @@ function Library:create_ui()
     Tabs.ScrollBarImageTransparency = 1
     Tabs.ScrollBarThickness = 0
     Tabs.Name = 'Tabs'
-    Tabs.Size = UDim2.new(0, 129, 0, 350)
+    Tabs.Size = UDim2.new(0, 129, 0, 252)
     Tabs.AutomaticCanvasSize = Enum.AutomaticSize.XY
     Tabs.BackgroundTransparency = 1
-    Tabs.Position = UDim2.new(0.026, 0, 0.184, 0)
+    Tabs.Position = UDim2.new(0.026, 0, 0.111, 0)
     Tabs.CanvasSize = UDim2.new(0, 0, 0.5, 0)
     Tabs.Parent = Handler
     
@@ -737,26 +738,26 @@ function Library:create_ui()
 
     local SearchHolder = Instance.new('Frame')
     SearchHolder.Name = 'SearchHolder'
-    SearchHolder.BackgroundTransparency = 0.08
-    SearchHolder.Position = UDim2.new(0.026, 0, 0.113, 0)
-    SearchHolder.Size = UDim2.new(0, 129, 0, 30)
+    SearchHolder.BackgroundTransparency = 0.04
+    SearchHolder.Position = UDim2.new(0, 520, 0, 10)
+    SearchHolder.Size = UDim2.new(0, 160, 0, 32)
     SearchHolder.BorderSizePixel = 0
-    SearchHolder.BackgroundColor3 = ThemePalette.surface
+    SearchHolder.BackgroundColor3 = ThemePalette.surfaceAlt
     SearchHolder.Parent = Handler
 
     local SearchCorner = Instance.new('UICorner')
-    SearchCorner.CornerRadius = UDim.new(0, 6)
+    SearchCorner.CornerRadius = UDim.new(0, 9)
     SearchCorner.Parent = SearchHolder
 
     local SearchStroke = Instance.new('UIStroke')
     SearchStroke.Color = ThemePalette.accentDeep
-    SearchStroke.Transparency = 0.3
+    SearchStroke.Transparency = 0.18
     SearchStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     SearchStroke.Parent = SearchHolder
 
     local SearchPadding = Instance.new('UIPadding')
-    SearchPadding.PaddingLeft = UDim.new(0, 10)
-    SearchPadding.PaddingRight = UDim.new(0, 10)
+    SearchPadding.PaddingLeft = UDim.new(0, 12)
+    SearchPadding.PaddingRight = UDim.new(0, 34)
     SearchPadding.Parent = SearchHolder
 
     local SearchInput = Instance.new('TextBox')
@@ -764,7 +765,7 @@ function Library:create_ui()
     SearchInput.BackgroundTransparency = 1
     SearchInput.ClearTextOnFocus = false
     SearchInput.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
-    SearchInput.PlaceholderText = 'Search modules...'
+    SearchInput.PlaceholderText = 'Search...'
     SearchInput.PlaceholderColor3 = ThemePalette.placeholder
     SearchInput.Text = ''
     SearchInput.TextColor3 = ThemePalette.text
@@ -772,6 +773,43 @@ function Library:create_ui()
     SearchInput.TextXAlignment = Enum.TextXAlignment.Left
     SearchInput.Size = UDim2.new(1, 0, 1, 0)
     SearchInput.Parent = SearchHolder
+
+    local SearchIcon = Instance.new('Frame')
+    SearchIcon.Name = 'SearchIcon'
+    SearchIcon.AnchorPoint = Vector2.new(1, 0.5)
+    SearchIcon.Position = UDim2.new(1, -11, 0.5, 0)
+    SearchIcon.Size = UDim2.new(0, 14, 0, 14)
+    SearchIcon.BackgroundTransparency = 1
+    SearchIcon.Parent = SearchHolder
+
+    local SearchLens = Instance.new('Frame')
+    SearchLens.AnchorPoint = Vector2.new(0.5, 0.5)
+    SearchLens.Position = UDim2.new(0.42, 0, 0.42, 0)
+    SearchLens.Size = UDim2.new(0, 8, 0, 8)
+    SearchLens.BackgroundTransparency = 1
+    SearchLens.Parent = SearchIcon
+
+    local SearchLensCorner = Instance.new('UICorner')
+    SearchLensCorner.CornerRadius = UDim.new(1, 0)
+    SearchLensCorner.Parent = SearchLens
+
+    local SearchLensStroke = Instance.new('UIStroke')
+    SearchLensStroke.Color = ThemePalette.accentSoft
+    SearchLensStroke.Thickness = 1.3
+    SearchLensStroke.Parent = SearchLens
+
+    local SearchHandle = Instance.new('Frame')
+    SearchHandle.AnchorPoint = Vector2.new(0.5, 0.5)
+    SearchHandle.Position = UDim2.new(0.79, 0, 0.79, 0)
+    SearchHandle.Size = UDim2.new(0, 6, 0, 2)
+    SearchHandle.BorderSizePixel = 0
+    SearchHandle.BackgroundColor3 = ThemePalette.accentSoft
+    SearchHandle.Rotation = 45
+    SearchHandle.Parent = SearchIcon
+
+    local SearchHandleCorner = Instance.new('UICorner')
+    SearchHandleCorner.CornerRadius = UDim.new(1, 0)
+    SearchHandleCorner.Parent = SearchHandle
 
     local ClientName = Instance.new('TextLabel')
     ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
@@ -796,7 +834,7 @@ function Library:create_ui()
     
     local Pin = Instance.new('Frame')
     Pin.Name = 'Pin'
-    Pin.Position = UDim2.new(0.026, 0, 0.207, 0)
+    Pin.Position = UDim2.new(0.026, 0, 0.136, 0)
     Pin.Size = UDim2.new(0, 2, 0, 16)
     Pin.BackgroundColor3 = ThemeRGB(100, 185, 255)
     Pin.Parent = Handler
@@ -844,6 +882,120 @@ function Library:create_ui()
     local Sections = Instance.new('Folder')
     Sections.Name = 'Sections'
     Sections.Parent = Handler
+
+    local playerPing = "Ping -- ms"
+    pcall(function()
+        playerPing = string.format("Ping %d ms", math.floor(LocalPlayer:GetNetworkPing() * 1000))
+    end)
+
+    local playerThumbnail = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+    pcall(function()
+        local thumbnail = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+        if thumbnail and thumbnail ~= "" then
+            playerThumbnail = thumbnail
+        end
+    end)
+
+    local PlayerCard = Instance.new("Frame")
+    PlayerCard.Name = "PlayerCard"
+    PlayerCard.Size = UDim2.new(0, 120, 0, 156)
+    PlayerCard.Position = UDim2.new(0, 6, 0, 299)
+    PlayerCard.BackgroundColor3 = ThemePalette.surface
+    PlayerCard.BorderSizePixel = 0
+    PlayerCard.Parent = Handler
+
+    local PlayerCardCorner = Instance.new("UICorner")
+    PlayerCardCorner.CornerRadius = UDim.new(0, 10)
+    PlayerCardCorner.Parent = PlayerCard
+
+    local PlayerCardStroke = Instance.new("UIStroke")
+    PlayerCardStroke.Color = ThemePalette.accentDeep
+    PlayerCardStroke.Transparency = 0.35
+    PlayerCardStroke.Parent = PlayerCard
+
+    local PlayerGlow = Instance.new("Frame")
+    PlayerGlow.Size = UDim2.new(0, 70, 0, 70)
+    PlayerGlow.AnchorPoint = Vector2.new(0.5, 0)
+    PlayerGlow.Position = UDim2.new(0.5, 0, 0, 8)
+    PlayerGlow.BackgroundColor3 = ThemePalette.accent
+    PlayerGlow.BackgroundTransparency = 0.82
+    PlayerGlow.BorderSizePixel = 0
+    PlayerGlow.Parent = PlayerCard
+
+    local PlayerGlowCorner = Instance.new("UICorner")
+    PlayerGlowCorner.CornerRadius = UDim.new(1, 0)
+    PlayerGlowCorner.Parent = PlayerGlow
+
+    local AvatarFrame = Instance.new("Frame")
+    AvatarFrame.Name = "AvatarFrame"
+    AvatarFrame.Size = UDim2.new(0, 58, 0, 58)
+    AvatarFrame.AnchorPoint = Vector2.new(0.5, 0)
+    AvatarFrame.Position = UDim2.new(0.5, 0, 0, 12)
+    AvatarFrame.BackgroundColor3 = ThemePalette.surfaceAlt
+    AvatarFrame.BorderSizePixel = 0
+    AvatarFrame.Parent = PlayerCard
+
+    local AvatarFrameCorner = Instance.new("UICorner")
+    AvatarFrameCorner.CornerRadius = UDim.new(0, 16)
+    AvatarFrameCorner.Parent = AvatarFrame
+
+    local AvatarFrameStroke = Instance.new("UIStroke")
+    AvatarFrameStroke.Color = ThemePalette.accent
+    AvatarFrameStroke.Transparency = 0.2
+    AvatarFrameStroke.Thickness = 1.5
+    AvatarFrameStroke.Parent = AvatarFrame
+
+    local AvatarImage = Instance.new("ImageLabel")
+    AvatarImage.Name = "AvatarImage"
+    AvatarImage.Size = UDim2.new(1, -8, 1, -8)
+    AvatarImage.Position = UDim2.new(0, 4, 0, 4)
+    AvatarImage.BackgroundTransparency = 1
+    AvatarImage.Image = playerThumbnail
+    AvatarImage.ScaleType = Enum.ScaleType.Crop
+    AvatarImage.Parent = AvatarFrame
+
+    local AvatarImageCorner = Instance.new("UICorner")
+    AvatarImageCorner.CornerRadius = UDim.new(0, 13)
+    AvatarImageCorner.Parent = AvatarImage
+
+    local PlayerName = Instance.new("TextLabel")
+    PlayerName.Name = "PlayerName"
+    PlayerName.Size = UDim2.new(1, -12, 0, 16)
+    PlayerName.Position = UDim2.new(0, 6, 0, 76)
+    PlayerName.BackgroundTransparency = 1
+    PlayerName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
+    PlayerName.TextColor3 = ThemePalette.text
+    PlayerName.TextSize = 12
+    PlayerName.TextXAlignment = Enum.TextXAlignment.Center
+    PlayerName.Text = "@" .. LocalPlayer.Name
+    PlayerName.TextTruncate = Enum.TextTruncate.AtEnd
+    PlayerName.Parent = PlayerCard
+
+    local PlayerStatus = Instance.new("TextLabel")
+    PlayerStatus.Name = "PlayerStatus"
+    PlayerStatus.Size = UDim2.new(1, -12, 0, 14)
+    PlayerStatus.Position = UDim2.new(0, 6, 0, 96)
+    PlayerStatus.BackgroundTransparency = 1
+    PlayerStatus.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Medium)
+    PlayerStatus.TextColor3 = ThemePalette.textSoft
+    PlayerStatus.TextSize = 10
+    PlayerStatus.TextXAlignment = Enum.TextXAlignment.Center
+    PlayerStatus.Text = LocalPlayer.DisplayName ~= LocalPlayer.Name and LocalPlayer.DisplayName or "Reverse User"
+    PlayerStatus.TextTruncate = Enum.TextTruncate.AtEnd
+    PlayerStatus.Parent = PlayerCard
+
+    local PlayerMeta = Instance.new("TextLabel")
+    PlayerMeta.Name = "PlayerMeta"
+    PlayerMeta.Size = UDim2.new(1, -12, 0, 12)
+    PlayerMeta.Position = UDim2.new(0, 6, 0, 111)
+    PlayerMeta.BackgroundTransparency = 1
+    PlayerMeta.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Medium)
+    PlayerMeta.TextColor3 = ThemePalette.placeholder
+    PlayerMeta.TextSize = 9
+    PlayerMeta.TextXAlignment = Enum.TextXAlignment.Center
+    PlayerMeta.Text = playerPing
+    PlayerMeta.TextTruncate = Enum.TextTruncate.AtEnd
+    PlayerMeta.Parent = PlayerCard
     
     local Minimize = Instance.new('TextButton')
     Minimize.FontFace = Font.new('rbxasset://fonts/families/SourceSansPro.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
@@ -865,14 +1017,14 @@ function Library:create_ui()
     -- ============================================================
     local DiscordBtn = Instance.new("TextButton")
     DiscordBtn.Name = "DiscordBtn"
-    DiscordBtn.Size = UDim2.new(0, 120, 0, 34)
-    DiscordBtn.Position = UDim2.new(0.008, 0, 0.892, 0)
-    DiscordBtn.BackgroundColor3 = ThemeRGB(19, 22, 42)
+    DiscordBtn.Size = UDim2.new(1, -16, 0, 24)
+    DiscordBtn.Position = UDim2.new(0, 8, 1, -32)
+    DiscordBtn.BackgroundColor3 = ThemeRGB(25, 30, 55)
     DiscordBtn.BorderSizePixel = 0
     DiscordBtn.Text = ""
     DiscordBtn.AutoButtonColor = false
     DiscordBtn.ZIndex = 10
-    DiscordBtn.Parent = Handler
+    DiscordBtn.Parent = PlayerCard
 
     local DBtnCorner = Instance.new("UICorner")
     DBtnCorner.CornerRadius = UDim.new(0, 8)
@@ -890,7 +1042,7 @@ function Library:create_ui()
     local DBtnAccent = Instance.new("Frame")
     DBtnAccent.Size = UDim2.new(0, 3, 0.6, 0)
     DBtnAccent.AnchorPoint = Vector2.new(0, 0.5)
-    DBtnAccent.Position = UDim2.new(0, 7, 0.5, 0)
+    DBtnAccent.Position = UDim2.new(0, 6, 0.5, 0)
     DBtnAccent.BackgroundColor3 = ThemeRGB(88, 101, 242)
     DBtnAccent.BorderSizePixel = 0
     DBtnAccent.ZIndex = 11
@@ -902,7 +1054,7 @@ function Library:create_ui()
 
     -- Subtle glow behind accent
     local DBtnGlow = Instance.new("Frame")
-    DBtnGlow.Size = UDim2.new(0, 50, 1, 0)
+    DBtnGlow.Size = UDim2.new(0, 36, 1, 0)
     DBtnGlow.Position = UDim2.new(0, 0, 0, 0)
     DBtnGlow.BackgroundColor3 = ThemeRGB(88, 101, 242)
     DBtnGlow.BackgroundTransparency = 0.88
@@ -924,9 +1076,9 @@ function Library:create_ui()
     -- Discord icon
     local DiscordIcon = Instance.new("ImageLabel")
     DiscordIcon.Image = "rbxassetid://112538196670712"
-    DiscordIcon.Size = UDim2.new(0, 16, 0, 16)
+    DiscordIcon.Size = UDim2.new(0, 14, 0, 14)
     DiscordIcon.AnchorPoint = Vector2.new(0, 0.5)
-    DiscordIcon.Position = UDim2.new(0, 18, 0.5, 0)
+    DiscordIcon.Position = UDim2.new(0, 14, 0.5, 0)
     DiscordIcon.BackgroundTransparency = 1
     DiscordIcon.ImageColor3 = ThemeRGB(140, 155, 255)
     DiscordIcon.ZIndex = 12
@@ -934,13 +1086,13 @@ function Library:create_ui()
 
     -- Label
     local DiscordLabel = Instance.new("TextLabel")
-    DiscordLabel.Text = "Join Discord"
+    DiscordLabel.Text = "Discord"
     DiscordLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
-    DiscordLabel.TextSize = 11
+    DiscordLabel.TextSize = 10
     DiscordLabel.TextColor3 = ThemeRGB(200, 210, 255)
     DiscordLabel.BackgroundTransparency = 1
-    DiscordLabel.Size = UDim2.new(0, 72, 1, 0)
-    DiscordLabel.Position = UDim2.new(0, 40, 0, 0)
+    DiscordLabel.Size = UDim2.new(0, 58, 1, 0)
+    DiscordLabel.Position = UDim2.new(0, 34, 0, 0)
     DiscordLabel.TextXAlignment = Enum.TextXAlignment.Left
     DiscordLabel.ZIndex = 12
     DiscordLabel.Parent = DiscordBtn
@@ -948,7 +1100,7 @@ function Library:create_ui()
     -- Hover: lighten border + bg
     DiscordBtn.MouseEnter:Connect(function()
         TweenService:Create(DiscordBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            BackgroundColor3 = ThemeRGB(28, 33, 62)
+            BackgroundColor3 = ThemePalette.surfaceSoft
         }):Play()
         TweenService:Create(DBtnStroke, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
             Transparency = 0.1
@@ -956,7 +1108,7 @@ function Library:create_ui()
     end)
     DiscordBtn.MouseLeave:Connect(function()
         TweenService:Create(DiscordBtn, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            BackgroundColor3 = ThemeRGB(19, 22, 42)
+            BackgroundColor3 = ThemePalette.surfaceAlt
         }):Play()
         TweenService:Create(DBtnStroke, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
             Transparency = 0.4
@@ -1093,7 +1245,7 @@ function Library:create_ui()
                     local offset = object.LayoutOrder * (0.113 / 1.3)
 
                     TweenService:Create(Pin, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                        Position = UDim2.fromScale(0.026, 0.206 + offset)
+                        Position = UDim2.fromScale(0.026, 0.135 + offset)
                     }):Play()    
 
                     TweenService:Create(object, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {

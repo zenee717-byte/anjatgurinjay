@@ -717,14 +717,14 @@ function Library:create_ui()
     local Handler = Instance.new('Frame')
     Handler.BackgroundTransparency = 1
     Handler.Name = 'Handler'
-    Handler.Size = UDim2.new(0, 698, 0, 479)
+    Handler.Size = UDim2.new(0, 698, 0, 560)
     Handler.Parent = Container
     
     local Tabs = Instance.new('ScrollingFrame')
     Tabs.ScrollBarImageTransparency = 1
     Tabs.ScrollBarThickness = 0
     Tabs.Name = 'Tabs'
-    Tabs.Size = UDim2.new(0, 129, 0, 252)
+    Tabs.Size = UDim2.new(0, 129, 0, 320)
     Tabs.AutomaticCanvasSize = Enum.AutomaticSize.XY
     Tabs.BackgroundTransparency = 1
     Tabs.Position = UDim2.new(0.026, 0, 0.111, 0)
@@ -736,88 +736,13 @@ function Library:create_ui()
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     UIListLayout.Parent = Tabs
 
-    local SearchHolder = Instance.new('Frame')
-    SearchHolder.Name = 'SearchHolder'
-    SearchHolder.BackgroundTransparency = 0.04
-    SearchHolder.Position = UDim2.new(0, 520, 0, 10)
-    SearchHolder.Size = UDim2.new(0, 160, 0, 32)
-    SearchHolder.BorderSizePixel = 0
-    SearchHolder.BackgroundColor3 = ThemePalette.surfaceAlt
-    SearchHolder.Parent = Handler
-
-    local SearchCorner = Instance.new('UICorner')
-    SearchCorner.CornerRadius = UDim.new(0, 9)
-    SearchCorner.Parent = SearchHolder
-
-    local SearchStroke = Instance.new('UIStroke')
-    SearchStroke.Color = ThemePalette.accentDeep
-    SearchStroke.Transparency = 0.18
-    SearchStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    SearchStroke.Parent = SearchHolder
-
-    local SearchPadding = Instance.new('UIPadding')
-    SearchPadding.PaddingLeft = UDim.new(0, 12)
-    SearchPadding.PaddingRight = UDim.new(0, 34)
-    SearchPadding.Parent = SearchHolder
-
-    local SearchInput = Instance.new('TextBox')
-    SearchInput.Name = 'SearchInput'
-    SearchInput.BackgroundTransparency = 1
-    SearchInput.ClearTextOnFocus = false
-    SearchInput.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
-    SearchInput.PlaceholderText = 'Search...'
-    SearchInput.PlaceholderColor3 = ThemePalette.placeholder
-    SearchInput.Text = ''
-    SearchInput.TextColor3 = ThemePalette.text
-    SearchInput.TextSize = 11
-    SearchInput.TextXAlignment = Enum.TextXAlignment.Left
-    SearchInput.Size = UDim2.new(1, 0, 1, 0)
-    SearchInput.Parent = SearchHolder
-
-    local SearchIcon = Instance.new('Frame')
-    SearchIcon.Name = 'SearchIcon'
-    SearchIcon.AnchorPoint = Vector2.new(1, 0.5)
-    SearchIcon.Position = UDim2.new(1, -11, 0.5, 0)
-    SearchIcon.Size = UDim2.new(0, 14, 0, 14)
-    SearchIcon.BackgroundTransparency = 1
-    SearchIcon.Parent = SearchHolder
-
-    local SearchLens = Instance.new('Frame')
-    SearchLens.AnchorPoint = Vector2.new(0.5, 0.5)
-    SearchLens.Position = UDim2.new(0.42, 0, 0.42, 0)
-    SearchLens.Size = UDim2.new(0, 8, 0, 8)
-    SearchLens.BackgroundTransparency = 1
-    SearchLens.Parent = SearchIcon
-
-    local SearchLensCorner = Instance.new('UICorner')
-    SearchLensCorner.CornerRadius = UDim.new(1, 0)
-    SearchLensCorner.Parent = SearchLens
-
-    local SearchLensStroke = Instance.new('UIStroke')
-    SearchLensStroke.Color = ThemePalette.accentSoft
-    SearchLensStroke.Thickness = 1.3
-    SearchLensStroke.Parent = SearchLens
-
-    local SearchHandle = Instance.new('Frame')
-    SearchHandle.AnchorPoint = Vector2.new(0.5, 0.5)
-    SearchHandle.Position = UDim2.new(0.79, 0, 0.79, 0)
-    SearchHandle.Size = UDim2.new(0, 6, 0, 2)
-    SearchHandle.BorderSizePixel = 0
-    SearchHandle.BackgroundColor3 = ThemePalette.accentSoft
-    SearchHandle.Rotation = 45
-    SearchHandle.Parent = SearchIcon
-
-    local SearchHandleCorner = Instance.new('UICorner')
-    SearchHandleCorner.CornerRadius = UDim.new(1, 0)
-    SearchHandleCorner.Parent = SearchHandle
-
     local ClientName = Instance.new('TextLabel')
     ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
-    ClientName.TextColor3 = ThemeRGB(100, 185, 255)
-    ClientName.TextTransparency = 0.2
-    ClientName.Text = 'Reverse'
+    ClientName.TextColor3 = ThemeRGB(255, 255, 255)
+    ClientName.TextTransparency = 0.05
+    ClientName.Text = 'Rev.'
     ClientName.Name = 'ClientName'
-    ClientName.Size = UDim2.new(0, 67, 0, 13)
+    ClientName.Size = UDim2.new(0, 50, 0, 13)
     ClientName.AnchorPoint = Vector2.new(0, 0.5)
     ClientName.Position = UDim2.new(0.056, 0, 0.055, 0)
     ClientName.BackgroundTransparency = 1
@@ -827,10 +752,28 @@ function Library:create_ui()
     
     local UIGradient = Instance.new('UIGradient')
     UIGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, ThemeRGB(160, 200, 255)),
-        ColorSequenceKeypoint.new(1, ThemeRGB(255, 255, 255))
+        ColorSequenceKeypoint.new(0, ThemePalette.accentSoft),
+        ColorSequenceKeypoint.new(0.45, ThemePalette.background),
+        ColorSequenceKeypoint.new(1, ThemePalette.accent)
     }
+    UIGradient.Offset = Vector2.new(-1, 0)
     UIGradient.Parent = ClientName
+
+    task.spawn(function()
+        while ClientName and ClientName.Parent and UIGradient.Parent do
+            local tween_in = TweenService:Create(UIGradient, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Offset = Vector2.new(1, 0)
+            })
+            tween_in:Play()
+            tween_in.Completed:Wait()
+
+            local tween_out = TweenService:Create(UIGradient, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Offset = Vector2.new(-1, 0)
+            })
+            tween_out:Play()
+            tween_out.Completed:Wait()
+        end
+    end)
     
     local Pin = Instance.new('Frame')
     Pin.Name = 'Pin'
@@ -874,7 +817,7 @@ function Library:create_ui()
     Divider.BackgroundTransparency = 0.5
     Divider.Position = UDim2.new(0.23499999940395355, 0, 0, 0)
     Divider.BorderColor3 = ThemeRGB(0, 0, 0)
-    Divider.Size = UDim2.new(0, 1, 0, 479)
+    Divider.Size = UDim2.new(0, 1, 0, 560)
     Divider.BorderSizePixel = 0
     Divider.BackgroundColor3 = ThemeRGB(50, 80, 160)
     Divider.Parent = Handler
@@ -899,7 +842,7 @@ function Library:create_ui()
     local PlayerCard = Instance.new("Frame")
     PlayerCard.Name = "PlayerCard"
     PlayerCard.Size = UDim2.new(0, 120, 0, 156)
-    PlayerCard.Position = UDim2.new(0, 6, 0, 299)
+    PlayerCard.Position = UDim2.new(0, 6, 0, 394)
     PlayerCard.BackgroundColor3 = ThemePalette.surface
     PlayerCard.BorderSizePixel = 0
     PlayerCard.Parent = Handler
@@ -980,7 +923,7 @@ function Library:create_ui()
     PlayerStatus.TextColor3 = ThemePalette.textSoft
     PlayerStatus.TextSize = 10
     PlayerStatus.TextXAlignment = Enum.TextXAlignment.Center
-    PlayerStatus.Text = LocalPlayer.DisplayName ~= LocalPlayer.Name and LocalPlayer.DisplayName or "Reverse User"
+    PlayerStatus.Text = LocalPlayer.DisplayName ~= LocalPlayer.Name and LocalPlayer.DisplayName or "Rev User"
     PlayerStatus.TextTruncate = Enum.TextTruncate.AtEnd
     PlayerStatus.Parent = PlayerCard
 
@@ -1192,7 +1135,7 @@ function Library:create_ui()
     function self:change_visiblity(state: boolean)
         if state then
             TweenService:Create(Container, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Size = UDim2.fromOffset(698, 479)
+                Size = UDim2.fromOffset(698, 560)
             }):Play()
         else
             TweenService:Create(Container, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -1227,7 +1170,7 @@ function Library:create_ui()
         end
     
         TweenService:Create(Container, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            Size = UDim2.fromOffset(698, 479)
+            Size = UDim2.fromOffset(698, 560)
         }):Play()
 
         AcrylicBlur.new(Container)
@@ -1302,49 +1245,7 @@ function Library:create_ui()
 
             object.Visible = false
         end
-
-        self:apply_module_search()
     end
-
-    function self:apply_module_search(query: string?)
-        local search_text = string.lower((query or SearchInput.Text or ""):gsub("^%s+", ""):gsub("%s+$", ""))
-
-        for _, section in Sections:GetChildren() do
-            if not section:IsA('ScrollingFrame') then
-                continue
-            end
-
-            for _, object in section:GetChildren() do
-                if object.Name ~= 'Module' then
-                    continue
-                end
-
-                local title = string.lower(tostring(object:GetAttribute('SearchTitle') or ""))
-                local description = string.lower(tostring(object:GetAttribute('SearchDescription') or ""))
-                local matches = search_text == "" or string.find(title, search_text, 1, true) or string.find(description, search_text, 1, true)
-
-                object.Visible = matches and true or false
-            end
-        end
-    end
-
-    SearchInput:GetPropertyChangedSignal('Text'):Connect(function()
-        self:apply_module_search(SearchInput.Text)
-    end)
-
-    SearchInput.Focused:Connect(function()
-        TweenService:Create(SearchStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            Color = ThemePalette.accent,
-            Transparency = 0.05
-        }):Play()
-    end)
-
-    SearchInput.FocusLost:Connect(function()
-        TweenService:Create(SearchStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            Color = ThemePalette.accentDeep,
-            Transparency = 0.3
-        }):Play()
-    end)
 
     function self:create_tab(title: string, icon: string)
         local TabManager = {}
@@ -1421,7 +1322,7 @@ function Library:create_ui()
         LeftSection.Name = 'LeftSection'
         LeftSection.AutomaticCanvasSize = Enum.AutomaticSize.XY
         LeftSection.ScrollBarThickness = 0
-        LeftSection.Size = UDim2.new(0, 243, 0, 445)
+        LeftSection.Size = UDim2.new(0, 243, 0, 526)
         LeftSection.Selectable = false
         LeftSection.AnchorPoint = Vector2.new(0, 0.5)
         LeftSection.ScrollBarImageTransparency = 1
@@ -1448,7 +1349,7 @@ function Library:create_ui()
         RightSection.Name = 'RightSection'
         RightSection.AutomaticCanvasSize = Enum.AutomaticSize.XY
         RightSection.ScrollBarThickness = 0
-        RightSection.Size = UDim2.new(0, 243, 0, 445)
+        RightSection.Size = UDim2.new(0, 243, 0, 526)
         RightSection.Selectable = false
         RightSection.AnchorPoint = Vector2.new(0, 0.5)
         RightSection.ScrollBarImageTransparency = 1

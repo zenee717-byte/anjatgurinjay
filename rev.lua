@@ -544,7 +544,7 @@ local function create_keybind_list()
 		}
 
 		function item:IsShown()
-			return self._key ~= "None" and (self._active or self._mode == "Always")
+			return self._key ~= "None"
 		end
 
 		function item:Refresh()
@@ -702,13 +702,13 @@ local function wrap_colorpicker(raw, flag)
 	return colorpicker
 end
 
-local function wrap_keybind(raw, flag, displayName, noUI)
+local function wrap_keybind(raw, flag, displayName, showInList)
 	local keybind = {
 		_raw = raw,
 		Flag = flag,
 	}
 
-	if Library._keybindList and not noUI then
+	if Library._keybindList and showInList then
 		keybind._listItem = Library._keybindList:Add(raw and raw.Value or "None", displayName or flag, raw and raw.Mode or "Toggle")
 	end
 
@@ -809,13 +809,14 @@ local function attach_keybind(host, settings, displayName)
 	local flag = pick(settings, { "flag", "Flag" }, next_flag("Keybind"))
 	local callback = pick(settings, { "callback", "Callback" }, function() end)
 	local changedCallback = pick(settings, { "changed_callback", "ChangedCallback" }, function() end)
-	local noUI = pick(settings, { "no_ui", "NoUI" }, false)
+	local pickerNoUI = pick(settings, { "no_ui", "NoUI" }, true)
+	local showInList = pick(settings, { "show_in_list", "ShowInList" }, true)
 
 	local pickerConfig = {
 		SyncToggleState = pick(settings, { "sync_toggle_state", "SyncToggleState" }, false),
 		Mode = pick(settings, { "mode", "Mode" }, "Toggle"),
 		Text = displayName or pick(settings, { "title", "Title", "text", "Text", "name", "Name" }, "Keybind"),
-		NoUI = noUI,
+		NoUI = pickerNoUI,
 		Callback = function(state)
 			local raw = ensure_option(Options, flag)
 			update_keybind_flag(flag, raw, state)
@@ -837,7 +838,7 @@ local function attach_keybind(host, settings, displayName)
 
 	local raw = ensure_option(Options, flag)
 	update_keybind_flag(flag, raw)
-	return wrap_keybind(raw, flag, displayName, noUI)
+	return wrap_keybind(raw, flag, displayName, showInList)
 end
 
 local function wrap_text(host, raw, initialText)

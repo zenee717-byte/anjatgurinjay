@@ -1804,7 +1804,7 @@ function Library:Window(data)
 	local rawWindow = Obsidian:CreateWindow({
 		Title = pick(data, { "Title", "title" }, "Rev."),
 		Footer = pick(data, { "Footer", "footer" }, "version: 0.1"),
-		Icon = pick(data, { "Icon", "icon", "Logo", "logo" }, 251435890),
+		Icon = pick(data, { "Icon", "icon", "Logo", "logo" }, 732339897),
 		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
 		ShowCustomCursor = pick(data, { "ShowCustomCursor", "show_custom_cursor" }, false),
 		Center = pick(data, { "Center", "center" }, nil),

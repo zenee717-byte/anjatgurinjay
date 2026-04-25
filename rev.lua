@@ -58,6 +58,10 @@ local Library = {
 	Toggles = Toggles,
 	MenuKeybind = "LeftControl",
 	FallbackMenuKeybind = "LeftControl",
+	AutoSaveEnabled = true,
+	AutoSaveConfig = "last-session",
+	AutoSaveDelay = 0.75,
+	AutoLoadDelay = 0.75,
 	FadeSpeed = 0.2,
 	Tween = {
 		Time = 0.2,
@@ -72,6 +76,10 @@ local Library = {
 	_keybindList = nil,
 	_settingsPages = {},
 	_themeManagerReady = false,
+	_autoSaveQueued = false,
+	_autoSaveReady = false,
+	_autoSaveSuspended = false,
+	_autoLoadScheduled = false,
 }
 
 local function track_connection(connection)
@@ -751,6 +759,88 @@ local function ensure_theme_managers()
 	Library._themeManagerReady = true
 end
 
+local function persistence_supported()
+	return type(writefile) == "function" and type(readfile) == "function" and type(isfile) == "function"
+end
+
+local function get_auto_save_name()
+	local normalized = Library:NormalizeConfigName(Library.AutoSaveConfig)
+	return normalized or "last-session"
+end
+
+local function mark_auto_save_ready(delayTime)
+	task.delay(delayTime or 0, function()
+		if rawget(getgenv(), "__reverse_obsidian_compat") ~= Library then
+			return
+		end
+
+		Library._autoSaveSuspended = false
+		Library._autoSaveReady = true
+	end)
+end
+
+local function perform_auto_save()
+	if not Library.AutoSaveEnabled or not Library._autoSaveReady or Library._autoSaveSuspended or not persistence_supported() then
+		return false, "autosave unavailable"
+	end
+
+	ensure_theme_managers()
+
+	local configName = get_auto_save_name()
+	local ok, err = SaveManager:Save(configName)
+	if not ok then
+		return false, err
+	end
+
+	SaveManager:SaveAutoloadConfig(configName)
+	return true, configName
+end
+
+local function queue_auto_save()
+	if not Library.AutoSaveEnabled or not Library._autoSaveReady or Library._autoSaveSuspended or not persistence_supported() then
+		return
+	end
+
+	if Library._autoSaveQueued then
+		return
+	end
+
+	Library._autoSaveQueued = true
+
+	task.delay(Library.AutoSaveDelay or 0.75, function()
+		if rawget(getgenv(), "__reverse_obsidian_compat") ~= Library then
+			return
+		end
+
+		Library._autoSaveQueued = false
+		pcall(perform_auto_save)
+	end)
+end
+
+local function schedule_auto_restore()
+	if Library._autoLoadScheduled then
+		return
+	end
+
+	Library._autoLoadScheduled = true
+
+	if not persistence_supported() then
+		Library._autoSaveReady = true
+		return
+	end
+
+	Library._autoSaveReady = false
+	Library._autoSaveSuspended = true
+
+	task.delay(Library.AutoLoadDelay or 0.75, function()
+		if rawget(getgenv(), "__reverse_obsidian_compat") ~= Library then
+			return
+		end
+
+		Library:LoadAutoloadConfig(true)
+	end)
+end
+
 local function wrap_colorpicker(raw, flag)
 	local colorpicker = {
 		_raw = raw,
@@ -920,6 +1010,7 @@ local function attach_colorpicker(host, settings)
 				Transparency = newAlpha,
 			}
 			callback(value)
+			queue_auto_save()
 		end,
 	})
 
@@ -948,6 +1039,7 @@ local function attach_keybind(host, settings, displayName)
 				wrappedKeybind._sync(state)
 			end
 			callback(state)
+			queue_auto_save()
 		end,
 		ChangedCallback = function(newValue)
 			local raw = ensure_option(Options, flag)
@@ -962,9 +1054,11 @@ local function attach_keybind(host, settings, displayName)
 			end
 			if normalize_keybind_value(newValue) == "Backspace" then
 				changedCallback("None")
+				queue_auto_save()
 				return
 			end
 			changedCallback(newValue)
+			queue_auto_save()
 		end,
 	}
 
@@ -1268,6 +1362,7 @@ function SectionMethods:Toggle(data)
 		Callback = function(value)
 			Library.Flags[flag] = value
 			callback(value)
+			queue_auto_save()
 		end,
 	})
 
@@ -1337,6 +1432,7 @@ function SectionMethods:Slider(data)
 		Callback = function(value)
 			Library.Flags[flag] = value
 			callback(value)
+			queue_auto_save()
 		end,
 	})
 
@@ -1365,6 +1461,7 @@ function SectionMethods:Dropdown(data)
 		Callback = function(value)
 			Library.Flags[flag] = value
 			callback(value)
+			queue_auto_save()
 		end,
 	})
 
@@ -1403,6 +1500,7 @@ function SectionMethods:Textbox(data)
 		Callback = function(value)
 			Library.Flags[flag] = value
 			callback(value)
+			queue_auto_save()
 		end,
 	})
 
@@ -1581,15 +1679,52 @@ end
 
 function Library:LoadAutoloadConfig(skipNotification)
 	ensure_theme_managers()
-	local ok, result = pcall(function()
-		return SaveManager:LoadAutoloadConfig()
+
+	if not persistence_supported() then
+		self._autoSaveReady = true
+		self._autoSaveSuspended = false
+		return false, "persistence unavailable"
+	end
+
+	self._autoSaveSuspended = true
+
+	local loadedName = nil
+	local result = nil
+	local autoloadName = "none"
+
+	pcall(function()
+		if SaveManager.GetAutoloadConfig then
+			autoloadName = SaveManager:GetAutoloadConfig()
+		end
 	end)
 
-	if not ok and not skipNotification then
+	if autoloadName ~= nil and autoloadName ~= "" and autoloadName ~= "none" then
+		local ok, err = SaveManager:Load(autoloadName)
+		if ok then
+			loadedName = autoloadName
+		else
+			result = err
+		end
+	end
+
+	if loadedName == nil and self.AutoSaveEnabled then
+		local autoSaveName = get_auto_save_name()
+		local ok, err = SaveManager:Load(autoSaveName)
+		if ok then
+			loadedName = autoSaveName
+			result = err
+		elseif result == nil then
+			result = err
+		end
+	end
+
+	mark_auto_save_ready(0.35)
+
+	if loadedName == nil and not skipNotification and result ~= nil and result ~= "invalid file" and result ~= "no config file is selected" then
 		self:Notification("Error", tostring(result), 5)
 	end
 
-	return ok, result
+	return loadedName ~= nil, loadedName or result
 end
 
 function Library:Watermark(name)
@@ -1643,7 +1778,7 @@ function Library:CreateSettingsPage(window, watermark, keybindList)
 	try_attach_gui_settings(window)
 
 	pcall(function()
-		SaveManager:LoadAutoloadConfig()
+		Library:LoadAutoloadConfig(true)
 	end)
 
 	self._settingsPages[window] = page
@@ -1707,10 +1842,16 @@ function Library:Window(data)
 		end
 	end))
 
+	schedule_auto_restore()
+
 	return window
 end
 
 function Library:Unload()
+	pcall(function()
+		perform_auto_save()
+	end)
+
 	for _, connection in ipairs(self._connections) do
 		pcall(function()
 			connection:Disconnect()
@@ -1721,6 +1862,10 @@ function Library:Unload()
 	self._settingsPages = {}
 	self._windows = {}
 	self._mainWindow = nil
+	self._autoSaveQueued = false
+	self._autoSaveReady = false
+	self._autoSaveSuspended = false
+	self._autoLoadScheduled = false
 
 	if self._watermark then
 		self._watermark:Destroy()

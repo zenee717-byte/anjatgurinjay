@@ -57,6 +57,7 @@ local Library = {
 	Options = Options,
 	Toggles = Toggles,
 	MenuKeybind = "LeftControl",
+	FallbackMenuKeybind = "LeftControl",
 	FadeSpeed = 0.2,
 	Tween = {
 		Time = 0.2,
@@ -1460,6 +1461,14 @@ function PageMethods:SubPage(data)
 end
 
 function WindowMethods:_find_gui_root()
+	if self._raw and self._raw.ScreenGui and self._raw.ScreenGui.Parent then
+		return self._raw.ScreenGui
+	end
+
+	if Obsidian.ScreenGui and Obsidian.ScreenGui.Parent then
+		return Obsidian.ScreenGui
+	end
+
 	if self._guiRoot and self._guiRoot.Parent then
 		return self._guiRoot
 	end
@@ -1691,7 +1700,9 @@ function Library:Window(data)
 			return
 		end
 
-		if key_matches_input(Library.MenuKeybind, input) then
+		if key_matches_input(Library.MenuKeybind, input)
+			or (Library.FallbackMenuKeybind ~= nil and normalize_keybind_value(Library.FallbackMenuKeybind) ~= normalize_keybind_value(Library.MenuKeybind) and key_matches_input(Library.FallbackMenuKeybind, input))
+		then
 			window:Toggle()
 		end
 	end))

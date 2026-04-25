@@ -141,6 +141,14 @@ local function next_flag(prefix)
 	return string.format("%s_%d", prefix or "ReverseFlag", Library._nextFlag)
 end
 
+local function normalize_page_name(name)
+	return tostring(name or ""):gsub("^%s+", ""):gsub("%s+$", ""):lower()
+end
+
+local function is_gui_page_name(name)
+	return normalize_page_name(name) == "gui"
+end
+
 local function strip_enum_prefix(value)
 	return tostring(value)
 		:gsub("^Enum%.KeyCode%.", "")
@@ -619,6 +627,104 @@ local function create_keybind_list()
 	list:RefreshVisibility()
 
 	return list
+end
+
+local function create_disabled_watermark()
+	local watermark = {
+		_disabled = true,
+	}
+
+	function watermark:SetText()
+		return self
+	end
+
+	function watermark:SetVisibility()
+		return self
+	end
+
+	function watermark:BindToggle()
+		return self
+	end
+
+	function watermark:Destroy()
+		return self
+	end
+
+	return watermark
+end
+
+local function attach_gui_menu_section(page, keybindList)
+	if not page then
+		return nil
+	end
+
+	if page._reverseGuiMenuAttached then
+		return page._reverseGuiMenu
+	end
+
+	local menu = page:Section({
+		Name = "Menu",
+		Side = 1,
+	})
+
+	local defaultVisible = Library.Flags.UI_KeybindListVisible
+	if defaultVisible == nil then
+		defaultVisible = keybindList ~= nil
+	end
+
+	menu:Toggle({
+		Flag = "UI_KeybindListVisible",
+		Name = "Keybind List",
+		Default = defaultVisible,
+		Callback = function(value)
+			if keybindList then
+				keybindList:SetVisibility(value)
+			end
+		end,
+	})
+
+	if keybindList then
+		keybindList:SetVisibility(defaultVisible == true)
+	end
+
+	page._reverseGuiMenuAttached = true
+	page._reverseGuiMenu = menu
+	return menu
+end
+
+local function try_attach_gui_settings(window, page)
+	if not window or window._guiSettingsAttached then
+		return false
+	end
+
+	local pending = window._pendingGuiSettings
+	if not pending then
+		return false
+	end
+
+	local targetPage = page
+	if not targetPage and window._pagesByName then
+		targetPage = window._pagesByName.gui
+	end
+
+	if not targetPage or not is_gui_page_name(targetPage.Name) then
+		return false
+	end
+
+	local menu = attach_gui_menu_section(targetPage, pending.keybindList)
+	window._guiSettingsAttached = menu ~= nil
+
+	if window._guiSettingsAttached then
+		pending.Page = targetPage
+		pending.Menu = menu
+
+		if pending.Descriptor then
+			pending.Descriptor.Page = targetPage
+			pending.Descriptor.Menu = menu
+		end
+	end
+
+	return window._guiSettingsAttached
 end
 
 local function ensure_theme_managers()
@@ -1389,7 +1495,16 @@ function WindowMethods:Page(data)
 		page._tab = self._raw:AddTab(page.Name, resolve_tab_icon(page.Icon))
 	end
 
-	return setmetatable(page, PageMethods)
+	page = setmetatable(page, PageMethods)
+
+	self._pagesByName = self._pagesByName or {}
+	self._pagesByName[normalize_page_name(page.Name)] = page
+
+	if is_gui_page_name(page.Name) then
+		try_attach_gui_settings(self, page)
+	end
+
+	return page
 end
 
 function Library:NextFlag()
@@ -1452,7 +1567,7 @@ function Library:Watermark(name)
 		return self._watermark
 	end
 
-	self._watermark = create_watermark(name or "reverse")
+	self._watermark = create_disabled_watermark()
 	return self._watermark
 end
 
@@ -1476,53 +1591,27 @@ function Library:CreateSettingsPage(window, watermark, keybindList)
 
 	ensure_theme_managers()
 
-	local tab = window._raw:AddTab("UI Settings", "settings")
-	local page = setmetatable({
+	local page = {
 		Window = window,
-		Name = "UI Settings",
+		Name = "Gui",
 		Columns = 2,
 		SubPages = false,
-		_tab = tab,
-	}, PageMethods)
+		Page = nil,
+		Menu = nil,
+	}
 
-	local menu = tab:AddLeftGroupbox("Menu")
-	menu:AddToggle("UI_WatermarkVisible", {
-		Text = "Watermark",
-		Default = watermark ~= nil,
-		Callback = function(value)
-			if watermark then
-				watermark:SetVisibility(value)
-			end
-		end,
-	})
+	window._pendingGuiSettings = {
+		keybindList = keybindList,
+		Descriptor = page,
+	}
+	window._guiSettingsAttached = false
 
-	menu:AddToggle("UI_KeybindListVisible", {
-		Text = "Keybind List",
-		Default = keybindList ~= nil,
-		Callback = function(value)
-			if keybindList then
-				keybindList:SetVisibility(value)
-			end
-		end,
-	})
+	if watermark and watermark.SetVisibility then
+		watermark:SetVisibility(false)
+	end
 
-	menu:AddLabel("Menu Bind"):AddKeyPicker("UI_MenuKeybind", {
-		Default = normalize_picker_key(self.MenuKeybind),
-		NoUI = true,
-		Text = "Menu keybind",
-		Mode = "Toggle",
-		Callback = function() end,
-		ChangedCallback = function(newValue)
-			Library.MenuKeybind = normalize_keybind_value(newValue)
-		end,
-	})
+	try_attach_gui_settings(window)
 
-	menu:AddButton("Unload", function()
-		Library:Unload()
-	end)
-
-	ThemeManager:ApplyToTab(tab)
-	SaveManager:BuildConfigSection(tab)
 	pcall(function()
 		SaveManager:LoadAutoloadConfig()
 	end)
@@ -1567,6 +1656,9 @@ function Library:Window(data)
 		_snapshot = snapshot,
 		_guiRoot = nil,
 		IsOpen = true,
+		_pagesByName = {},
+		_pendingGuiSettings = nil,
+		_guiSettingsAttached = false,
 	}, WindowMethods)
 
 	window._guiRoot = window:_find_gui_root()

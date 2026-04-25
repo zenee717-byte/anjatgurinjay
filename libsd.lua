@@ -877,6 +877,7 @@ function Library:create_ui()
     SearchFrameStroke.Transparency = 0.35
     SearchFrameStroke.Thickness = 1
     SearchFrameStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    SearchFrameStroke.Enabled = false
     SearchFrameStroke.Parent = SearchFrame
 
     local SearchAccent = Instance.new("Frame")
@@ -898,7 +899,7 @@ function Library:create_ui()
     SearchBox.BackgroundTransparency = 1
     SearchBox.ClearTextOnFocus = false
     SearchBox.Text = ""
-    SearchBox.PlaceholderText = "Search modules..."
+    SearchBox.PlaceholderText = "Search"
     SearchBox.PlaceholderColor3 = ThemePalette.placeholder
     SearchBox.TextColor3 = ThemePalette.text
     SearchBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -990,6 +991,7 @@ function Library:create_ui()
     local PlayerCardStroke = Instance.new("UIStroke")
     PlayerCardStroke.Color = ThemePalette.accentDeep
     PlayerCardStroke.Transparency = 0.35
+    PlayerCardStroke.Enabled = false
     PlayerCardStroke.Parent = PlayerCard
 
     local PlayerGlow = Instance.new("Frame")
@@ -1022,6 +1024,7 @@ function Library:create_ui()
     AvatarFrameStroke.Color = ThemePalette.accent
     AvatarFrameStroke.Transparency = 0.2
     AvatarFrameStroke.Thickness = 1.5
+    AvatarFrameStroke.Enabled = false
     AvatarFrameStroke.Parent = AvatarFrame
 
     local AvatarImage = Instance.new("ImageLabel")
@@ -1115,6 +1118,7 @@ function Library:create_ui()
     DBtnStroke.Transparency = 0.4
     DBtnStroke.Thickness = 1
     DBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    DBtnStroke.Enabled = false
     DBtnStroke.Parent = DiscordBtn
 
     -- Left glow accent bar
@@ -1582,6 +1586,7 @@ function Library:create_ui()
             UIStroke.Color = ThemeRGB(50, 80, 160)
             UIStroke.Transparency = 0.5
             UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            UIStroke.Enabled = false
             UIStroke.Parent = Module
             
             local Header = Instance.new('TextButton')
@@ -1719,6 +1724,7 @@ function Library:create_ui()
             Divider.Size = UDim2.new(0, 241, 0, 1)
             Divider.BorderSizePixel = 0
             Divider.BackgroundColor3 = ThemeRGB(50, 80, 160)
+            Divider.Visible = false
             Divider.Parent = Header
             
             local Divider = Instance.new('Frame')
@@ -1730,6 +1736,7 @@ function Library:create_ui()
             Divider.Size = UDim2.new(0, 241, 0, 1)
             Divider.BorderSizePixel = 0
             Divider.BackgroundColor3 = ThemeRGB(50, 80, 160)
+            Divider.Visible = false
             Divider.Parent = Header
             
             local Options = Instance.new('Frame')

@@ -1199,7 +1199,7 @@ function Library:create_ui()
     end)
 
     DiscordBtn.MouseButton1Click:Connect(function()
-        setclipboard("https://discord.gg/gngstore")
+        setclipboard("https://discord.gg/TzyB45snHb")
         Library.SendNotification({
             title = "Discord",
             text = "Discord link copied to clipboard!",

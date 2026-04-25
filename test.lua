@@ -128,6 +128,7 @@ local Library do
         UnusedHolder = nil,
         Font = nil,
         KeyList = nil,
+        TextScale = 1.35,
 
         Colorpickers = { },
 
@@ -366,9 +367,16 @@ local Library do
         Instances.__index = Instances
 
         Instances.Create = function(self, Class, Properties)
+            local NewProperties = Properties
+
+            if (Class == "TextLabel" or Class == "TextButton" or Class == "TextBox") and Properties.TextSize then
+                NewProperties = TableClone(Properties)
+                NewProperties.TextSize = MathFloor((Properties.TextSize * (Library.TextScale or 1)) + 0.5)
+            end
+
             local NewItem = {
                 Instance = InstanceNew(Class),
-                Properties = Properties,
+                Properties = NewProperties,
                 Class = Class
             }
 

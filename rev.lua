@@ -507,7 +507,21 @@ local function create_keybind_list()
 		_frame = frame,
 		_holder = listHolder,
 		_items = {},
+		_manualVisible = true,
 	}
+
+	function list:RefreshVisibility()
+		local visibleCount = 0
+
+		for _, item in ipairs(self._items) do
+			if item:IsShown() then
+				visibleCount = visibleCount + 1
+			end
+		end
+
+		self._gui.Enabled = self._manualVisible and visibleCount > 0
+		return self
+	end
 
 	function list:Add(key, name, mode)
 		local label = Instance.new("TextLabel")
@@ -522,35 +536,70 @@ local function create_keybind_list()
 
 		local item = {
 			_label = label,
+			_owner = self,
+			_key = "None",
+			_name = "Keybind",
+			_mode = "Toggle",
+			_active = false,
 		}
 
-		function item:SetText(newKey, newName, newMode)
-			local shownKey = normalize_keybind_value(newKey)
-			local shownMode = tostring(newMode or "Toggle")
-			local shownName = tostring(newName or "Keybind")
-			self._label.Text = string.format("[%s] %s (%s)", shownKey, shownName, shownMode)
+		function item:IsShown()
+			return self._key ~= "None" and (self._active or self._mode == "Always")
+		end
+
+		function item:Refresh()
+			local shouldShow = self:IsShown()
+			self._label.Visible = shouldShow
+			self._label.Size = shouldShow and UDim2.new(1, 0, 0, 18) or UDim2.new(1, 0, 0, 0)
+
+			if shouldShow then
+				self._label.Text = string.format("[%s] %s (%s)", self._key, self._name, self._mode)
+			else
+				self._label.Text = ""
+			end
+
+			self._owner:RefreshVisibility()
 			return self
+		end
+
+		function item:SetText(newKey, newName, newMode)
+			self._key = normalize_keybind_value(newKey)
+			self._mode = tostring(newMode or "Toggle")
+			self._name = tostring(newName or "Keybind")
+			return self:Refresh()
 		end
 
 		function item:SetStatus(isActive)
 			self._label.TextColor3 = isActive and Library.Theme.Accent or Library.Theme.TextDim
-			return self
+			self._active = isActive == true
+			return self:Refresh()
 		end
 
 		function item:Remove()
 			if self._label then
 				self._label:Destroy()
 			end
+
+			for index, existing in ipairs(self._owner._items) do
+				if existing == self then
+					table.remove(self._owner._items, index)
+					break
+				end
+			end
+
+			self._owner:RefreshVisibility()
 		end
 
 		item:SetText(key, name, mode)
 		item:SetStatus(false)
 		table.insert(self._items, item)
+		self:RefreshVisibility()
 		return item
 	end
 
 	function list:SetVisibility(state)
-		self._gui.Enabled = state
+		self._manualVisible = state == true
+		self:RefreshVisibility()
 		return self
 	end
 
@@ -559,6 +608,8 @@ local function create_keybind_list()
 			self._gui:Destroy()
 		end
 	end
+
+	list:RefreshVisibility()
 
 	return list
 end

@@ -1180,7 +1180,7 @@ end
 
 function SectionMethods:Label(name)
 	local text = tostring(name or "")
-	local host = self._group:AddLabel(text, true)
+	local host = self._group:AddLabel(text)
 	return wrap_text(host, host, text)
 end
 

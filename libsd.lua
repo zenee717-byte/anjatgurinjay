@@ -1158,7 +1158,7 @@ function Library:create_ui()
 
     -- Discord icon
     local DiscordIcon = Instance.new("ImageLabel")
-    DiscordIcon.Image = "rbxassetid://112538196670712"
+    DiscordIcon.Image = "rbxassetid://101192191207677"
     DiscordIcon.Size = UDim2.new(0, 14, 0, 14)
     DiscordIcon.AnchorPoint = Vector2.new(0, 0.5)
     DiscordIcon.Position = UDim2.new(0, 14, 0.5, 0)

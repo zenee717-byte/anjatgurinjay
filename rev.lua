@@ -532,6 +532,11 @@ local function create_keybind_list()
 			return self
 		end
 
+		function item:SetStatus(isActive)
+			self._label.TextColor3 = isActive and Library.Theme.Accent or Library.Theme.TextDim
+			return self
+		end
+
 		function item:Remove()
 			if self._label then
 				self._label:Destroy()
@@ -539,6 +544,7 @@ local function create_keybind_list()
 		end
 
 		item:SetText(key, name, mode)
+		item:SetStatus(false)
 		table.insert(self._items, item)
 		return item
 	end
@@ -664,6 +670,7 @@ local function wrap_keybind(raw, flag, displayName, noUI)
 
 		if keybind._listItem then
 			keybind._listItem:SetText(keybind.Key, displayName or flag, keybind.Mode)
+			keybind._listItem:SetStatus(keybind.Toggled)
 		end
 	end
 
@@ -1629,14 +1636,33 @@ function CompatTab:create_module(settings)
 	module._state = module._toggle:Get()
 	Library:SetFlagLoadPriority(moduleFlag, 100, "module_toggle")
 
-	if pick(settings, { "keybind", "Keybind", "default_keybind", "DefaultKeybind" }, nil) ~= nil then
+	do
+		local initialized = false
+		local lastToggleState = module._state
+
 		module._keybind = module._toggle:Keybind({
 			Flag = moduleFlag .. "_keybind",
 			Default = pick(settings, { "keybind", "Keybind", "default_keybind", "DefaultKeybind" }, nil),
 			Mode = pick(settings, { "keybind_mode", "KeybindMode" }, "Toggle"),
-			SyncToggleState = true,
+			SyncToggleState = false,
 			Text = pick(settings, { "title", "Title", "name", "Name" }, "Module"),
+			Callback = function(value)
+				if not initialized then
+					return
+				end
+
+				if value == lastToggleState then
+					return
+				end
+
+				lastToggleState = value
+				module:change_state(value)
+			end,
 		})
+
+		local _, _, toggled = module._keybind:Get()
+		lastToggleState = toggled or module._state
+		initialized = true
 	end
 
 	return module

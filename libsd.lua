@@ -737,17 +737,17 @@ function Library:create_ui()
     UIListLayout.Parent = Tabs
 
     local ClientName = Instance.new('TextLabel')
-    ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold)
+    ClientName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold)
     ClientName.TextColor3 = ThemeRGB(255, 255, 255)
     ClientName.TextTransparency = 0.05
     ClientName.Text = 'Rev.'
     ClientName.Name = 'ClientName'
-    ClientName.Size = UDim2.new(0, 50, 0, 13)
+    ClientName.Size = UDim2.new(0, 88, 0, 22)
     ClientName.AnchorPoint = Vector2.new(0, 0.5)
-    ClientName.Position = UDim2.new(0.056, 0, 0.055, 0)
+    ClientName.Position = UDim2.new(0.03, 0, 0.055, 0)
     ClientName.BackgroundTransparency = 1
     ClientName.TextXAlignment = Enum.TextXAlignment.Left
-    ClientName.TextSize = 13
+    ClientName.TextSize = 20
     ClientName.Parent = Handler
     
     local UIGradient = Instance.new('UIGradient')
@@ -785,32 +785,6 @@ function Library:create_ui()
     local UICorner2 = Instance.new('UICorner')
     UICorner2.CornerRadius = UDim.new(1, 0)
     UICorner2.Parent = Pin
-    
-    local Icon = Instance.new('ImageLabel')
-    Icon.ImageColor3 = ThemeRGB(100, 185, 255)
-    Icon.ScaleType = Enum.ScaleType.Fit
-    Icon.AnchorPoint = Vector2.new(0, 0.5)
-    Icon.Image = 'rbxassetid://10653372143'
-    Icon.BackgroundTransparency = 1
-    Icon.Position = UDim2.new(0.025, 0, 0.055, 0)
-    Icon.Name = 'Icon'
-    Icon.Size = UDim2.new(0, 18, 0, 18)
-    Icon.Parent = Handler
-
-    task.spawn(function()
-        while Icon and Icon.Parent do
-            local growSize = math.random(20, 26)
-            local duration = math.random(8, 15) / 10
-            TweenService:Create(Icon, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, growSize, 0, growSize)
-            }):Play()
-            task.wait(duration)
-            TweenService:Create(Icon, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                Size = UDim2.new(0, 18, 0, 18) 
-            }):Play()
-            task.wait(duration)
-        end
-    end)
 
     local Divider = Instance.new('Frame')
     Divider.Name = 'Divider'

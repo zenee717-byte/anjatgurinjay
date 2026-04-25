@@ -720,6 +720,14 @@ function Library:create_ui()
     Handler.Size = UDim2.new(0, 698, 0, 560)
     Handler.Parent = Container
 
+    local ContentTopOffset = 62
+    local ContentBottomPadding = 17
+    local ContentSectionHeight = Handler.Size.Y.Offset - ContentTopOffset - ContentBottomPadding
+    local ContentLeftOffset = 181
+    local ContentRightOffset = 439
+    local SearchBarOffsetY = 18
+    local SearchBarWidth = Handler.Size.X.Offset - ContentLeftOffset - 16
+
     local CollapsedHeader = Instance.new('TextButton')
     CollapsedHeader.Name = 'CollapsedHeader'
     CollapsedHeader.AutoButtonColor = false
@@ -850,6 +858,108 @@ function Library:create_ui()
     local Sections = Instance.new('Folder')
     Sections.Name = 'Sections'
     Sections.Parent = Handler
+
+    local SearchFrame = Instance.new("Frame")
+    SearchFrame.Name = "SearchFrame"
+    SearchFrame.Size = UDim2.fromOffset(SearchBarWidth, 34)
+    SearchFrame.Position = UDim2.fromOffset(ContentLeftOffset, SearchBarOffsetY)
+    SearchFrame.BackgroundColor3 = ThemePalette.surface
+    SearchFrame.BackgroundTransparency = 0.08
+    SearchFrame.BorderSizePixel = 0
+    SearchFrame.Parent = Handler
+
+    local SearchFrameCorner = Instance.new("UICorner")
+    SearchFrameCorner.CornerRadius = UDim.new(0, 8)
+    SearchFrameCorner.Parent = SearchFrame
+
+    local SearchFrameStroke = Instance.new("UIStroke")
+    SearchFrameStroke.Color = ThemeRGB(50, 80, 160)
+    SearchFrameStroke.Transparency = 0.35
+    SearchFrameStroke.Thickness = 1
+    SearchFrameStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    SearchFrameStroke.Parent = SearchFrame
+
+    local SearchAccent = Instance.new("Frame")
+    SearchAccent.Size = UDim2.new(0, 3, 0.58, 0)
+    SearchAccent.AnchorPoint = Vector2.new(0, 0.5)
+    SearchAccent.Position = UDim2.new(0, 8, 0.5, 0)
+    SearchAccent.BackgroundColor3 = ThemeRGB(100, 185, 255)
+    SearchAccent.BorderSizePixel = 0
+    SearchAccent.Parent = SearchFrame
+
+    local SearchAccentCorner = Instance.new("UICorner")
+    SearchAccentCorner.CornerRadius = UDim.new(1, 0)
+    SearchAccentCorner.Parent = SearchAccent
+
+    local SearchBox = Instance.new("TextBox")
+    SearchBox.Name = "SearchBox"
+    SearchBox.Size = UDim2.new(1, -22, 1, 0)
+    SearchBox.Position = UDim2.new(0, 18, 0, 0)
+    SearchBox.BackgroundTransparency = 1
+    SearchBox.ClearTextOnFocus = false
+    SearchBox.Text = ""
+    SearchBox.PlaceholderText = "Search modules..."
+    SearchBox.PlaceholderColor3 = ThemePalette.placeholder
+    SearchBox.TextColor3 = ThemePalette.text
+    SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+    SearchBox.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Medium, Enum.FontStyle.Normal)
+    SearchBox.TextSize = 12
+    SearchBox.Parent = SearchFrame
+
+    local SearchPadding = Instance.new("UIPadding")
+    SearchPadding.PaddingLeft = UDim.new(0, 10)
+    SearchPadding.PaddingRight = UDim.new(0, 6)
+    SearchPadding.Parent = SearchBox
+
+    local function module_matches_search(module: Instance, query: string)
+        if query == "" then
+            return true
+        end
+
+        local title = string.lower(tostring(module:GetAttribute("SearchTitle") or ""))
+        local description = string.lower(tostring(module:GetAttribute("SearchDescription") or ""))
+
+        return string.find(title, query, 1, true) ~= nil or string.find(description, query, 1, true) ~= nil
+    end
+
+    local function apply_module_search()
+        local query = string.lower(SearchBox.Text or "")
+
+        for _, section in Sections:GetChildren() do
+            if not section:IsA("ScrollingFrame") then
+                continue
+            end
+
+            local storage = section:FindFirstChild("SearchStorage")
+            if not storage then
+                continue
+            end
+
+            local modules = {}
+
+            for _, child in section:GetChildren() do
+                if child.Name == "Module" then
+                    table.insert(modules, child)
+                end
+            end
+
+            for _, child in storage:GetChildren() do
+                if child.Name == "Module" then
+                    table.insert(modules, child)
+                end
+            end
+
+            for _, module in modules do
+                local target_parent = module_matches_search(module, query) and section or storage
+
+                if module.Parent ~= target_parent then
+                    module.Parent = target_parent
+                end
+            end
+        end
+    end
+
+    SearchBox:GetPropertyChangedSignal("Text"):Connect(apply_module_search)
 
     local playerPing = "Ping -- ms"
     pcall(function()
@@ -1280,6 +1390,8 @@ function Library:create_ui()
 
             object.Visible = false
         end
+
+        apply_module_search()
     end
 
     function self:create_tab(title: string, icon: string)
@@ -1357,12 +1469,12 @@ function Library:create_ui()
         LeftSection.Name = 'LeftSection'
         LeftSection.AutomaticCanvasSize = Enum.AutomaticSize.XY
         LeftSection.ScrollBarThickness = 0
-        LeftSection.Size = UDim2.new(0, 243, 0, 526)
+        LeftSection.Size = UDim2.fromOffset(243, ContentSectionHeight)
         LeftSection.Selectable = false
-        LeftSection.AnchorPoint = Vector2.new(0, 0.5)
+        LeftSection.AnchorPoint = Vector2.new(0, 0)
         LeftSection.ScrollBarImageTransparency = 1
         LeftSection.BackgroundTransparency = 1
-        LeftSection.Position = UDim2.new(0.2594326436519623, 0, 0.5, 0)
+        LeftSection.Position = UDim2.fromOffset(ContentLeftOffset, ContentTopOffset)
         LeftSection.BorderColor3 = ThemeRGB(0, 0, 0)
         LeftSection.BackgroundColor3 = ThemeRGB(255, 255, 255)
         LeftSection.BorderSizePixel = 0
@@ -1380,16 +1492,20 @@ function Library:create_ui()
         UIPadding.PaddingTop = UDim.new(0, 1)
         UIPadding.Parent = LeftSection
 
+        local LeftSectionStorage = Instance.new("Folder")
+        LeftSectionStorage.Name = "SearchStorage"
+        LeftSectionStorage.Parent = LeftSection
+
         local RightSection = Instance.new('ScrollingFrame')
         RightSection.Name = 'RightSection'
         RightSection.AutomaticCanvasSize = Enum.AutomaticSize.XY
         RightSection.ScrollBarThickness = 0
-        RightSection.Size = UDim2.new(0, 243, 0, 526)
+        RightSection.Size = UDim2.fromOffset(243, ContentSectionHeight)
         RightSection.Selectable = false
-        RightSection.AnchorPoint = Vector2.new(0, 0.5)
+        RightSection.AnchorPoint = Vector2.new(0, 0)
         RightSection.ScrollBarImageTransparency = 1
         RightSection.BackgroundTransparency = 1
-        RightSection.Position = UDim2.new(0.6290000081062317, 0, 0.5, 0)
+        RightSection.Position = UDim2.fromOffset(ContentRightOffset, ContentTopOffset)
         RightSection.BorderColor3 = ThemeRGB(0, 0, 0)
         RightSection.BackgroundColor3 = ThemeRGB(255, 255, 255)
         RightSection.BorderSizePixel = 0
@@ -1406,6 +1522,10 @@ function Library:create_ui()
         local UIPadding = Instance.new('UIPadding')
         UIPadding.PaddingTop = UDim.new(0, 1)
         UIPadding.Parent = RightSection
+
+        local RightSectionStorage = Instance.new("Folder")
+        RightSectionStorage.Name = "SearchStorage"
+        RightSectionStorage.Parent = RightSection
 
         self._tab += 1
 
@@ -1447,6 +1567,8 @@ function Library:create_ui()
             Module:SetAttribute('SearchDescription', tostring(settings.description or ""))
             Module.BackgroundColor3 = ThemeRGB(19, 22, 42)
             Module.Parent = settings.section
+
+            apply_module_search()
 
             local UIListLayout = Instance.new('UIListLayout')
             UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder

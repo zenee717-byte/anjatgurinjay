@@ -1180,10 +1180,8 @@ end
 
 function SectionMethods:Label(name)
 	local text = tostring(name or "")
-	local flag = next_flag("Label")
-	local host = self._group:AddLabel(text, true, flag)
-	local raw = ensure_option(Options, flag, host)
-	return wrap_text(host, raw, text)
+	local host = self._group:AddLabel(text, true)
+	return wrap_text(host, host, text)
 end
 
 function SectionMethods:Textbox(data)

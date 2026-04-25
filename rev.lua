@@ -1,4 +1,4 @@
--- reverse compatibility layer using Obsidian UI
+-- Rev. compatibility layer using Obsidian UI
 
 local previous = rawget(getgenv(), "__reverse_obsidian_compat")
 if type(previous) == "table" and previous.Unload then
@@ -1904,7 +1904,7 @@ function Library.new(settings)
 	}, CompatRoot)
 
 	if pick(settings, { "watermark", "Watermark" }, false) then
-		root._watermark = Library:Watermark(pick(settings, { "watermark_text", "WatermarkText" }, "reverse"))
+		root._watermark = Library:Watermark(pick(settings, { "watermark_text", "WatermarkText" }, "Rev."))
 		root._watermark:BindToggle(root._window)
 	end
 

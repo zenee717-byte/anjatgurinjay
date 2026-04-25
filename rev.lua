@@ -56,7 +56,7 @@ local Library = {
 	Flags = {},
 	Options = Options,
 	Toggles = Toggles,
-	MenuKeybind = "RightShift",
+	MenuKeybind = "LeftControl",
 	FadeSpeed = 0.2,
 	Tween = {
 		Time = 0.2,
@@ -508,6 +508,7 @@ local function create_keybind_list()
 		_holder = listHolder,
 		_items = {},
 		_manualVisible = true,
+		_windowVisible = true,
 	}
 
 	function list:RefreshVisibility()
@@ -519,7 +520,7 @@ local function create_keybind_list()
 			end
 		end
 
-		self._gui.Enabled = self._manualVisible and visibleCount > 0
+		self._gui.Enabled = self._manualVisible and self._windowVisible and visibleCount > 0
 		return self
 	end
 
@@ -599,6 +600,12 @@ local function create_keybind_list()
 
 	function list:SetVisibility(state)
 		self._manualVisible = state == true
+		self:RefreshVisibility()
+		return self
+	end
+
+	function list:SetWindowVisible(state)
+		self._windowVisible = state == true
 		self:RefreshVisibility()
 		return self
 	end
@@ -896,7 +903,11 @@ local function wrap_text(host, raw, initialText)
 	end
 
 	function text:Keybind(settings)
-		return attach_keybind(self._host, settings, self.Value)
+		return attach_keybind(
+			self._host,
+			settings,
+			pick(settings, { "text", "Text", "title", "Title", "name", "Name" }, self.Value)
+		)
 	end
 
 	return text
@@ -1347,6 +1358,14 @@ function WindowMethods:SetOpen(state)
 		end
 	end
 
+	if Library._keybindList and Library._keybindList.SetWindowVisible then
+		Library._keybindList:SetWindowVisible(self.IsOpen)
+	end
+
+	if Library._watermark then
+		Library._watermark:SetVisibility(self.IsOpen)
+	end
+
 	return self
 end
 
@@ -1533,7 +1552,7 @@ function Library:Window(data)
 		Footer = pick(data, { "Footer", "footer" }, "version: reverse"),
 		Icon = pick(data, { "Icon", "icon", "Logo", "logo" }, 95816097006870),
 		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
-		ShowCustomCursor = pick(data, { "ShowCustomCursor", "show_custom_cursor" }, true),
+		ShowCustomCursor = pick(data, { "ShowCustomCursor", "show_custom_cursor" }, false),
 		Center = pick(data, { "Center", "center" }, nil),
 		AutoShow = pick(data, { "AutoShow", "auto_show" }, nil),
 		Resizable = pick(data, { "Resizable", "resizable" }, nil),
@@ -1624,7 +1643,7 @@ function Library.new(settings)
 		root._keybind_list = Library:KeybindList()
 	end
 
-	if pick(settings, { "settings_page", "SettingsPage" }, true) then
+	if pick(settings, { "settings_page", "SettingsPage" }, false) then
 		root._settings_page = Library:CreateSettingsPage(root._window, root._watermark, root._keybind_list)
 	end
 

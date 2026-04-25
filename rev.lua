@@ -171,7 +171,7 @@ local input_mouse_map = {
 
 local function normalize_picker_key(value, fallbackMode)
 	if value == nil then
-		return "Backspace"
+		return "None"
 	end
 
 	if typeof and typeof(value) == "EnumItem" then
@@ -672,7 +672,7 @@ local function attach_gui_menu_section(page, keybindList)
 		defaultVisible = keybindList ~= nil
 	end
 
-	menu:Toggle({
+	local keybindListToggle = menu:Toggle({
 		Flag = "UI_KeybindListVisible",
 		Name = "Keybind List",
 		Default = defaultVisible,
@@ -681,6 +681,14 @@ local function attach_gui_menu_section(page, keybindList)
 				keybindList:SetVisibility(value)
 			end
 		end,
+	})
+
+	keybindListToggle:Keybind({
+		Flag = "UI_KeybindListVisible_Bind",
+		Text = "Keybind List",
+		Mode = "Toggle",
+		SyncToggleState = true,
+		Default = pick(Library.Flags, { "UI_KeybindListVisible_Bind" }, nil),
 	})
 
 	if keybindList then
@@ -860,7 +868,7 @@ local function wrap_keybind(raw, flag, displayName, showInList)
 	end
 
 	function keybind:SetMode(mode)
-		local key = self.Key or "Backspace"
+		local key = self.Key or "None"
 		if self._raw and self._raw.SetValue then
 			pcall(function()
 				self._raw:SetValue({ key, mode })
@@ -942,9 +950,18 @@ local function attach_keybind(host, settings, displayName)
 		end,
 		ChangedCallback = function(newValue)
 			local raw = ensure_option(Options, flag)
+			if normalize_keybind_value(newValue) == "Backspace" and raw and raw.SetValue then
+				pcall(function()
+					raw:SetValue({ "None", raw.Mode or pickerConfig.Mode or "Toggle" })
+				end)
+			end
 			update_keybind_flag(flag, raw)
 			if wrappedKeybind and wrappedKeybind._sync then
 				wrappedKeybind._sync()
+			end
+			if normalize_keybind_value(newValue) == "Backspace" then
+				changedCallback("None")
+				return
 			end
 			changedCallback(newValue)
 		end,
@@ -1443,9 +1460,13 @@ function PageMethods:SubPage(data)
 end
 
 function WindowMethods:_find_gui_root()
+	if self._guiRoot and self._guiRoot.Parent then
+		return self._guiRoot
+	end
+
 	local parent = gethui()
 	for _, child in ipairs(parent:GetChildren()) do
-		if not self._snapshot[child] and child:IsA("ScreenGui") then
+		if not self._snapshot[child] and child:IsA("ScreenGui") and child.Name ~= "ReverseWatermark" and child.Name ~= "ReverseKeybindList" then
 			return child
 		end
 	end

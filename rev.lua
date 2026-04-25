@@ -451,7 +451,7 @@ local function create_watermark(text)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.Font = Enum.Font.Code
 	label.TextSize = 13
-	label.Text = tostring(text or "reverse")
+	label.Text = tostring(text or "Rev.")
 	label.Parent = frame
 
 	local watermark = {
@@ -1895,9 +1895,9 @@ function Library.new(settings)
 
 	local root = setmetatable({
 		_window = Library:Window({
-			Title = pick(settings, { "title", "Title" }, "reverse"),
-			Footer = pick(settings, { "footer", "Footer" }, "version: reverse"),
-			Icon = pick(settings, { "logo", "Logo", "icon", "Icon" }, 95816097006870),
+			Title = pick(settings, { "title", "Title" }, "Rev."),
+			Footer = pick(settings, { "footer", "Footer" }, "version: 0.1"),
+			Icon = pick(settings, { "logo", "Logo", "icon", "Icon" }, 11151804229),
 			MenuKeybind = pick(settings, { "menu_keybind", "MenuKeybind" }, Library.MenuKeybind),
 		}),
 		Flags = Library.Flags,

@@ -25,7 +25,7 @@ function convertStringToTable(inputString)
     local result = {}
     for value in string.gmatch(inputString, "([^,]+)") do
         local trimmedValue = value:match("^%s*(.-)%s*$")
-        tablein(result, trimmedValue)
+        table.insert(result, trimmedValue)
     end
 
     return result
@@ -3048,7 +3048,7 @@ function Library:create_ui()
                 Slider.LayoutOrder = LayoutOrderModule
                 
                 local TextLabel = Instance.new('TextLabel')
-                if GG.SelectedLanguage == "th" then
+                if getgenv().GG and getgenv().GG.SelectedLanguage == "th" then
                     TextLabel.FontFace = Font.new("rbxasset://fonts/families/NotoSansThai.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
                     TextLabel.TextSize = 13;
                 else
@@ -3261,7 +3261,7 @@ function Library:create_ui()
                 end;
                 
                 local TextLabel = Instance.new('TextLabel')
-                if GG.SelectedLanguage == "th" then
+                if getgenv().GG and getgenv().GG.SelectedLanguage == "th" then
                     TextLabel.FontFace = Font.new("rbxasset://fonts/families/NotoSansThai.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
                     TextLabel.TextSize = 13;
                 else

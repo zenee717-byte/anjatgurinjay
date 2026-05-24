@@ -194,7 +194,8 @@ local function normalize_page_name(name)
 end
 
 local function is_gui_page_name(name)
-	return normalize_page_name(name) == "gui"
+	local normalized = normalize_page_name(name)
+	return normalized == "gui" or normalized == "settings"
 end
 
 local function strip_enum_prefix(value)
@@ -531,13 +532,43 @@ local function create_watermark(text)
 end
 
 local function create_keybind_list()
-	local gui, frame = create_overlay_shell("ReverseKeybindList", UDim2.new(0, 230, 0, 34), UDim2.new(1, -242, 0, 12))
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "ReverseKeybindList"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.Parent = gethui()
+
+	local frame = Instance.new("Frame")
+	frame.Name = "Main"
+	frame.AnchorPoint = Vector2.new(1, 0.5)
+	frame.Position = UDim2.new(1, -14, 0.5, 0)
+	frame.Size = UDim2.new(0, 252, 0, 34)
 	frame.AutomaticSize = Enum.AutomaticSize.Y
+	frame.BackgroundColor3 = Library.Theme.Background
+	frame.BorderSizePixel = 0
+	frame.Parent = gui
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 6)
+	corner.Parent = frame
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Library.Theme.Border
+	stroke.Thickness = 1
+	stroke.Parent = frame
+
+	local accent = Instance.new("Frame")
+	accent.Name = "Accent"
+	accent.Size = UDim2.new(1, 0, 0, 2)
+	accent.BackgroundColor3 = Library.Theme.Accent
+	accent.BorderSizePixel = 0
+	accent.Parent = frame
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
-	title.Position = UDim2.new(0, 10, 0, 0)
-	title.Size = UDim2.new(1, -20, 0, 24)
+	title.Position = UDim2.new(0, 10, 0, 4)
+	title.Size = UDim2.new(1, -20, 0, 20)
 	title.BackgroundTransparency = 1
 	title.TextColor3 = Library.Theme.Text
 	title.TextXAlignment = Enum.TextXAlignment.Left
@@ -546,13 +577,25 @@ local function create_keybind_list()
 	title.Text = "Keybinds"
 	title.Parent = frame
 
+	local divider = Instance.new("Frame")
+	divider.Name = "Divider"
+	divider.Position = UDim2.new(0, 0, 0, 28)
+	divider.Size = UDim2.new(1, 0, 0, 1)
+	divider.BackgroundColor3 = Library.Theme.Border
+	divider.BorderSizePixel = 0
+	divider.Parent = frame
+
 	local listHolder = Instance.new("Frame")
 	listHolder.Name = "ListHolder"
-	listHolder.Position = UDim2.new(0, 8, 0, 24)
+	listHolder.Position = UDim2.new(0, 8, 0, 34)
 	listHolder.Size = UDim2.new(1, -16, 0, 0)
 	listHolder.BackgroundTransparency = 1
 	listHolder.AutomaticSize = Enum.AutomaticSize.Y
 	listHolder.Parent = frame
+
+	local listPadding = Instance.new("UIPadding")
+	listPadding.PaddingBottom = UDim.new(0, 8)
+	listPadding.Parent = listHolder
 
 	local layout = Instance.new("UIListLayout")
 	layout.Padding = UDim.new(0, 4)
@@ -581,17 +624,25 @@ local function create_keybind_list()
 	end
 
 	function list:Add(key, name, mode)
+		local row = Instance.new("Frame")
+		row.Name = "KeybindItem"
+		row.Size = UDim2.new(1, 0, 0, 20)
+		row.BackgroundTransparency = 1
+		row.BorderSizePixel = 0
+		row.Parent = self._holder
+
 		local label = Instance.new("TextLabel")
-		label.Name = "KeybindItem"
-		label.Size = UDim2.new(1, 0, 0, 18)
+		label.Name = "Label"
+		label.Size = UDim2.new(1, 0, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextColor3 = Library.Theme.TextDim
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.Font = Enum.Font.Code
 		label.TextSize = 12
-		label.Parent = self._holder
+		label.Parent = row
 
 		local item = {
+			_row = row,
 			_label = label,
 			_owner = self,
 			_key = "None",
@@ -606,8 +657,8 @@ local function create_keybind_list()
 
 		function item:Refresh()
 			local shouldShow = self:IsShown()
-			self._label.Visible = shouldShow
-			self._label.Size = shouldShow and UDim2.new(1, 0, 0, 18) or UDim2.new(1, 0, 0, 0)
+			self._row.Visible = shouldShow
+			self._row.Size = shouldShow and UDim2.new(1, 0, 0, 20) or UDim2.new(1, 0, 0, 0)
 
 			if shouldShow then
 				self._label.Text = string.format("[%s] %s (%s)", self._key, self._name, self._mode)
@@ -627,14 +678,14 @@ local function create_keybind_list()
 		end
 
 		function item:SetStatus(isActive)
-			self._label.TextColor3 = isActive and Library.Theme.Accent or Library.Theme.TextDim
+			self._label.TextColor3 = isActive and Library.Theme.Text or Library.Theme.TextDim
 			self._active = isActive == true
 			return self:Refresh()
 		end
 
 		function item:Remove()
-			if self._label then
-				self._label:Destroy()
+			if self._row then
+				self._row:Destroy()
 			end
 
 			for index, existing in ipairs(self._owner._items) do
@@ -785,7 +836,7 @@ local function attach_gui_menu_section(page, keybindList)
 	end
 
 	local menu = page:Section({
-		Name = "Menu",
+		Name = "Overlays",
 		Side = 1,
 	})
 
@@ -796,7 +847,7 @@ local function attach_gui_menu_section(page, keybindList)
 
 	local keybindListToggle = menu:Toggle({
 		Flag = "UI_KeybindListVisible",
-		Name = "Keybind List",
+		Name = "Show Keybind List",
 		Default = defaultVisible,
 		Callback = function(value)
 			if keybindList then
@@ -807,11 +858,13 @@ local function attach_gui_menu_section(page, keybindList)
 
 	keybindListToggle:Keybind({
 		Flag = "UI_KeybindListVisible_Bind",
-		Text = "Keybind List",
+		Text = "Show Keybind List",
 		Mode = "Toggle",
 		SyncToggleState = true,
 		Default = pick(Library.Flags, { "UI_KeybindListVisible_Bind" }, nil),
 	})
+
+	menu:Label("Toggle the keybind box on the right side.")
 
 	if keybindList then
 		keybindList:SetVisibility(defaultVisible == true)
@@ -820,6 +873,87 @@ local function attach_gui_menu_section(page, keybindList)
 	page._reverseGuiMenuAttached = true
 	page._reverseGuiMenu = menu
 	return menu
+end
+
+local function is_notification_area(frame)
+	if not (typeof and typeof(frame) == "Instance") or not frame:IsA("Frame") then
+		return false
+	end
+
+	if frame.BackgroundTransparency ~= 1 then
+		return false
+	end
+
+	local size = frame.Size
+	if size.X.Scale ~= 0 or size.X.Offset ~= 300 or size.Y.Scale ~= 1 then
+		return false
+	end
+
+	return frame:FindFirstChildOfClass("UIListLayout") ~= nil
+end
+
+local function move_notifications_bottom_left(guiRoot)
+	if not guiRoot then
+		return false
+	end
+
+	for _, child in ipairs(guiRoot:GetChildren()) do
+		if is_notification_area(child) then
+			local layout = child:FindFirstChildOfClass("UIListLayout")
+			child.AnchorPoint = Vector2.new(0, 1)
+			child.Position = UDim2.new(0, 12, 1, -30)
+			child.Size = UDim2.new(0, 300, 1, -42)
+
+			if layout then
+				layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+				pcall(function()
+					layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+				end)
+			end
+
+			return true
+		end
+	end
+
+	return false
+end
+
+local function schedule_notification_area_alignment(window)
+	task.defer(function()
+		for _, delayTime in ipairs({ 0, 0.1, 0.25, 0.5 }) do
+			if delayTime > 0 then
+				task.wait(delayTime)
+			end
+
+			if rawget(getgenv(), "__reverse_obsidian_compat") ~= Library then
+				return
+			end
+
+			window._guiRoot = window:_find_gui_root()
+			if move_notifications_bottom_left(window._guiRoot) then
+				return
+			end
+		end
+	end)
+end
+
+local function ensure_settings_page(window)
+	if not window then
+		return nil
+	end
+
+	window._pagesByName = window._pagesByName or {}
+
+	local existingPage = window._pagesByName.settings or window._pagesByName.gui
+	if existingPage then
+		return existingPage
+	end
+
+	return window:Page({
+		Name = "Settings",
+		Columns = 2,
+		Icon = "settings",
+	})
 end
 
 local function try_attach_gui_settings(window, page)
@@ -1888,7 +2022,7 @@ function Library:CreateSettingsPage(window, watermark, keybindList)
 
 	local page = {
 		Window = window,
-		Name = "Gui",
+		Name = "Settings",
 		Columns = 2,
 		SubPages = false,
 		Page = nil,
@@ -1905,7 +2039,14 @@ function Library:CreateSettingsPage(window, watermark, keybindList)
 		watermark:SetVisibility(false)
 	end
 
-	try_attach_gui_settings(window)
+	task.defer(function()
+		if rawget(getgenv(), "__reverse_obsidian_compat") ~= Library then
+			return
+		end
+
+		local settingsPage = ensure_settings_page(window)
+		try_attach_gui_settings(window, settingsPage)
+	end)
 
 	pcall(function()
 		Library:LoadAutoloadConfig(true)
@@ -1936,7 +2077,7 @@ function Library:Window(data)
 		Title = windowTitle,
 		Footer = pick(data, { "Footer", "footer" }, "version: 0.1"),
 		Icon = nil,
-		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
+		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Left"),
 		ShowCustomCursor = false,
 		UnlockMouseWhileOpen = false,
 		Center = pick(data, { "Center", "center" }, nil),
@@ -1961,6 +2102,7 @@ function Library:Window(data)
 
 	window._guiRoot = window:_find_gui_root()
 	schedule_window_title_alignment(window, windowTitle)
+	schedule_notification_area_alignment(window)
 	self._mainWindow = window
 	table.insert(self._windows, window)
 
@@ -2046,7 +2188,7 @@ function Library.new(settings)
 		root._keybind_list = Library:KeybindList()
 	end
 
-	if pick(settings, { "settings_page", "SettingsPage" }, false) then
+	if pick(settings, { "settings_page", "SettingsPage" }, true) then
 		root._settings_page = Library:CreateSettingsPage(root._window, root._watermark, root._keybind_list)
 	end
 

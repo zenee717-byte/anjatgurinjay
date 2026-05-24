@@ -55,14 +55,6 @@ local function sync_shiftlock_for_window(isOpen)
 		return
 	end
 
-	if isOpen then
-		if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
-			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-		end
-
-		return
-	end
-
 	UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 	UserInputService.MouseIconEnabled = false
 end
@@ -1939,6 +1931,7 @@ function Library:Window(data)
 		Icon = nil,
 		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
 		ShowCustomCursor = false,
+		UnlockMouseWhileOpen = false,
 		Center = pick(data, { "Center", "center" }, nil),
 		AutoShow = pick(data, { "AutoShow", "auto_show" }, nil),
 		Resizable = pick(data, { "Resizable", "resizable" }, nil),

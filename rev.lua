@@ -12,11 +12,59 @@ local Obsidian = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
 local gethui = gethui or function()
 	return CoreGui
+end
+
+local function get_local_player()
+	return Players.LocalPlayer
+end
+
+local function get_user_game_settings()
+	local ok, settings = pcall(function()
+		return UserSettings():GetService("UserGameSettings")
+	end)
+
+	if ok then
+		return settings
+	end
+
+	return nil
+end
+
+local function should_restore_shiftlock()
+	local localPlayer = get_local_player()
+	local userGameSettings = get_user_game_settings()
+	if not localPlayer or not userGameSettings then
+		return false
+	end
+
+	if not localPlayer.DevEnableMouseLock or not UserInputService.KeyboardEnabled or not UserInputService.MouseEnabled then
+		return false
+	end
+
+	return userGameSettings.RotationType == Enum.RotationType.CameraRelative
+end
+
+local function sync_shiftlock_for_window(isOpen)
+	if not should_restore_shiftlock() then
+		return
+	end
+
+	if isOpen then
+		if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+		end
+
+		return
+	end
+
+	UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+	UserInputService.MouseIconEnabled = false
 end
 
 Obsidian.ForceCheckbox = false
@@ -1650,7 +1698,20 @@ end
 function WindowMethods:SetOpen(state)
 	self.IsOpen = state ~= false
 	self._guiRoot = self:_find_gui_root()
-	if self._guiRoot then
+
+	local handledByRawToggle = false
+	if self._raw and self._raw.Toggle then
+		local ok = pcall(function()
+			self._raw:Toggle(self.IsOpen)
+		end)
+		handledByRawToggle = ok
+	end
+
+	if handledByRawToggle and self._guiRoot and self._guiRoot:IsA("ScreenGui") then
+		self._guiRoot.Enabled = true
+	end
+
+	if not handledByRawToggle and self._guiRoot then
 		if self._guiRoot:IsA("ScreenGui") then
 			self._guiRoot.Enabled = self.IsOpen
 		elseif self._guiRoot.Visible ~= nil then
@@ -1665,6 +1726,10 @@ function WindowMethods:SetOpen(state)
 	if Library._watermark then
 		Library._watermark:SetVisibility(self.IsOpen)
 	end
+
+	task.defer(function()
+		sync_shiftlock_for_window(self.IsOpen)
+	end)
 
 	return self
 end
@@ -1873,6 +1938,7 @@ function Library:Window(data)
 		Footer = pick(data, { "Footer", "footer" }, "version: 0.1"),
 		Icon = nil,
 		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
+		ShowCustomCursor = false,
 		Center = pick(data, { "Center", "center" }, nil),
 		AutoShow = pick(data, { "AutoShow", "auto_show" }, nil),
 		Resizable = pick(data, { "Resizable", "resizable" }, nil),

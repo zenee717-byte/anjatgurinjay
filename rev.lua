@@ -12,28 +12,8 @@ local Obsidian = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
-
-local function get_local_player()
-	return Players.LocalPlayer
-end
-
-local function get_user_game_settings()
-	local ok, settings = pcall(function()
-		return UserSettings():GetService("UserGameSettings")
-	end)
-
-	if ok then
-		return settings
-	end
-
-	return nil
-end
-
-local UserGameSettings = get_user_game_settings()
 
 local gethui = gethui or function()
 	return CoreGui
@@ -99,7 +79,6 @@ local Library = {
 	_autoSaveReady = false,
 	_autoSaveSuspended = false,
 	_autoLoadScheduled = false,
-	_shiftLockSupportReady = false,
 }
 
 local function track_connection(connection)
@@ -108,78 +87,6 @@ local function track_connection(connection)
 	end
 
 	return connection
-end
-
-local function get_local_humanoid()
-	local localPlayer = get_local_player()
-	if not localPlayer then
-		return nil
-	end
-
-	local character = localPlayer.Character
-	if not character then
-		return nil
-	end
-
-	return character:FindFirstChildOfClass("Humanoid")
-end
-
-local function should_preserve_shiftlock()
-	local localPlayer = get_local_player()
-	if not localPlayer or not UserGameSettings then
-		return false
-	end
-
-	if not localPlayer.DevEnableMouseLock or not UserInputService.KeyboardEnabled or not UserInputService.MouseEnabled then
-		return false
-	end
-
-	if UserInputService:GetFocusedTextBox() then
-		return false
-	end
-
-	if Library._mainWindow and Library._mainWindow.IsOpen then
-		return false
-	end
-
-	return UserGameSettings.RotationType == Enum.RotationType.CameraRelative
-end
-
-local function preserve_shiftlock()
-	if not should_preserve_shiftlock() then
-		return
-	end
-
-	if UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
-		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-	end
-
-	if UserInputService.MouseIconEnabled then
-		UserInputService.MouseIconEnabled = false
-	end
-
-	local humanoid = get_local_humanoid()
-	if humanoid and humanoid.Health > 0 and humanoid.AutoRotate == false then
-		humanoid.AutoRotate = true
-	end
-end
-
-local function ensure_shiftlock_support()
-	if Library._shiftLockSupportReady or not RunService:IsClient() then
-		return
-	end
-
-	Library._shiftLockSupportReady = true
-
-	-- Keep mouse-centered camera modes from being dropped by UI focus changes.
-	track_connection(RunService.RenderStepped:Connect(preserve_shiftlock))
-
-	local localPlayer = get_local_player()
-	if localPlayer then
-		track_connection(localPlayer.CharacterAdded:Connect(function()
-			task.defer(preserve_shiftlock)
-		end))
-	end
 end
 
 local function pick(settings, keys, defaultValue)
@@ -1951,7 +1858,6 @@ function Library:Window(data)
 
 	data = data or {}
 	ensure_theme_managers()
-	ensure_shiftlock_support()
 
 	local guiParent = gethui()
 	local snapshot = {}
@@ -1967,7 +1873,6 @@ function Library:Window(data)
 		Footer = pick(data, { "Footer", "footer" }, "version: 0.1"),
 		Icon = nil,
 		NotifySide = pick(data, { "NotifySide", "notify_side" }, "Right"),
-		ShowCustomCursor = pick(data, { "ShowCustomCursor", "show_custom_cursor" }, false),
 		Center = pick(data, { "Center", "center" }, nil),
 		AutoShow = pick(data, { "AutoShow", "auto_show" }, nil),
 		Resizable = pick(data, { "Resizable", "resizable" }, nil),
@@ -2029,7 +1934,6 @@ function Library:Unload()
 	self._autoSaveReady = false
 	self._autoSaveSuspended = false
 	self._autoLoadScheduled = false
-	self._shiftLockSupportReady = false
 
 	if self._watermark then
 		self._watermark:Destroy()

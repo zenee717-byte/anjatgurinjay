@@ -1,4 +1,4 @@
--- Rev. compatibility layer using Obsidian UI
+-- Reverse compatibility layer using Obsidian UI
 
 local previous = rawget(getgenv(), "__reverse_obsidian_compat")
 if type(previous) == "table" and previous.Unload then
@@ -490,7 +490,7 @@ local function create_watermark(text)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.Font = Enum.Font.Code
 	label.TextSize = 13
-	label.Text = tostring(text or "Rev.")
+	label.Text = tostring(text or "Reverse")
 	label.Parent = frame
 
 	local watermark = {
@@ -701,7 +701,7 @@ local function create_disabled_watermark()
 	return watermark
 end
 
-local function align_window_title_left(window, titleText)
+local function align_window_title_center(window, titleText)
 	if not window then
 		return false
 	end
@@ -713,10 +713,11 @@ local function align_window_title_left(window, titleText)
 		return false
 	end
 
-	local wantedTitle = tostring(titleText or "Rev.")
+	local wantedTitle = tostring(titleText or "Reverse")
 	local titleLabel
 	local titleHolder
 	local titleLayout
+	local titlePadding
 
 	for _, descendant in ipairs(guiRoot:GetDescendants()) do
 		if descendant:IsA("TextLabel") and descendant.Text == wantedTitle then
@@ -727,6 +728,7 @@ local function align_window_title_left(window, titleText)
 					titleLabel = descendant
 					titleHolder = parent
 					titleLayout = layout
+					titlePadding = parent:FindFirstChildOfClass("UIPadding")
 					break
 				end
 			end
@@ -737,8 +739,13 @@ local function align_window_title_left(window, titleText)
 		return false
 	end
 
-	titleLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	titleLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+	if titlePadding then
+		titlePadding.PaddingLeft = UDim.new(0, 0)
+		titlePadding.PaddingRight = UDim.new(0, 0)
+	end
 
 	for _, child in ipairs(titleHolder:GetChildren()) do
 		if child ~= titleLabel and (child:IsA("ImageLabel") or child:IsA("TextLabel")) then
@@ -761,7 +768,7 @@ local function schedule_window_title_alignment(window, titleText)
 				return
 			end
 
-			if align_window_title_left(window, titleText) then
+			if align_window_title_center(window, titleText) then
 				return
 			end
 		end
@@ -1923,7 +1930,7 @@ function Library:Window(data)
 	end
 
 	self.MenuKeybind = normalize_keybind_value(pick(data, { "menu_keybind", "MenuKeybind" }, self.MenuKeybind))
-	local windowTitle = pick(data, { "Title", "title" }, "Rev.")
+	local windowTitle = pick(data, { "Title", "title" }, "Reverse")
 
 	local rawWindow = Obsidian:CreateWindow({
 		Title = windowTitle,
@@ -2022,7 +2029,7 @@ function Library.new(settings)
 
 	local root = setmetatable({
 		_window = Library:Window({
-			Title = pick(settings, { "title", "Title" }, "Rev."),
+			Title = pick(settings, { "title", "Title" }, "Reverse"),
 			Footer = pick(settings, { "footer", "Footer" }, "version: 0.1"),
 			Icon = nil,
 			MenuKeybind = pick(settings, { "menu_keybind", "MenuKeybind" }, Library.MenuKeybind),
@@ -2031,7 +2038,7 @@ function Library.new(settings)
 	}, CompatRoot)
 
 	if pick(settings, { "watermark", "Watermark" }, false) then
-		root._watermark = Library:Watermark(pick(settings, { "watermark_text", "WatermarkText" }, "Rev."))
+		root._watermark = Library:Watermark(pick(settings, { "watermark_text", "WatermarkText" }, "Reverse"))
 		root._watermark:BindToggle(root._window)
 	end
 

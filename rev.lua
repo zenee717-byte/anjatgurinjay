@@ -607,7 +607,6 @@ local function create_keybind_list()
 		_holder = listHolder,
 		_items = {},
 		_manualVisible = true,
-		_windowVisible = true,
 	}
 
 	function list:RefreshVisibility()
@@ -619,7 +618,7 @@ local function create_keybind_list()
 			end
 		end
 
-		self._gui.Enabled = self._manualVisible and self._windowVisible and visibleCount > 0
+		self._gui.Enabled = self._manualVisible and visibleCount > 0
 		return self
 	end
 
@@ -712,8 +711,6 @@ local function create_keybind_list()
 	end
 
 	function list:SetWindowVisible(state)
-		self._windowVisible = state == true
-		self:RefreshVisibility()
 		return self
 	end
 
@@ -1850,10 +1847,6 @@ function WindowMethods:SetOpen(state)
 		elseif self._guiRoot.Visible ~= nil then
 			self._guiRoot.Visible = self.IsOpen
 		end
-	end
-
-	if Library._keybindList and Library._keybindList.SetWindowVisible then
-		Library._keybindList:SetWindowVisible(self.IsOpen)
 	end
 
 	if Library._watermark then
